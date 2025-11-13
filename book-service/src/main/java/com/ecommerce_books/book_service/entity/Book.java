@@ -1,0 +1,50 @@
+package com.ecommerce_books.book_service.entity;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+
+@Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+public class Book {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotBlank
+    @Size(min = 2, max = 255)
+    private String name;
+
+    @NotBlank
+    @Size(min = 2, max = 5000)
+    private String description;
+
+    @NotBlank
+    private String bookCoverImage;
+
+    @NotBlank
+    @Column(unique = true)
+    private String uniqueProductCode;
+
+    @Positive
+    private Long categoryId;
+
+    @Positive
+    private Long priceId;
+
+    @Min(0)
+    private Integer stockStatus;
+
+    @NotNull
+    private Boolean availabilityStatus;
+
+    @Min(0)
+    private Integer numberOfReviews;
+
+}

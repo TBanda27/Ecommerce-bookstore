@@ -1,0 +1,133 @@
+classDiagram
+    %% BOOK SERVICE
+    class Book {
+        -bookId: Long
+        -name: String
+        -description: String
+        -bookCoverImage: String
+        -uniqueProductCode: String
+        -categoryId: Long
+        -priceId: Long
+        -stockStatus: Integer
+        -availabilityStatus: Boolean
+        -numberOfReviews: Integer
+        +getId(): Long
+        +getName(): String
+        +getDescription(): String
+        +getPriceId(): Long
+        +getCategoryId(): Long
+        +getStockStatus(): Integer
+        +isAvailable(): Boolean
+    }
+
+    class BookController {
+        -bookService: BookService
+        -priceClient: PriceServiceClient
+        +getAllBooks(): ResponseEntity
+        +getBookById(id): ResponseEntity
+        +createBook(book): ResponseEntity
+        +updateBook(id, book): ResponseEntity
+        +deleteBook(id): ResponseEntity
+        +searchBooksByCategory(category): ResponseEntity
+    }
+
+    class BookService {
+        -bookRepository: BookRepository
+        -priceClient: PriceServiceClient
+        +getAllBooks(): List~Book~
+        +getBookById(id): Book
+        +createBook(book): Book
+        +updateBook(id, book): Book
+        +deleteBook(id): void
+        +searchByCategory(category): List~Book~
+    }
+
+    class BookRepository {
+        +findAll(): List~Book~
+        +findById(id): Optional~Book~
+        +save(book): Book
+        +deleteById(id): void
+        +findByCategory(categoryId): List~Book~
+    }
+
+    class BookDTO {
+        -bookId: Long
+        -name: String
+        -description: String
+        -bookCoverImage: String
+        -uniqueProductCode: String
+        -categoryId: Long
+        -priceId: Long
+        -stockStatus: Integer
+        -availabilityStatus: Boolean
+        -numberOfReviews: Integer
+    }
+
+    class PriceServiceClient {
+        +getPrice(priceId): Price
+        +createPrice(price): Price
+        +updatePrice(priceId, price): Price
+    }
+
+    %% PRICE SERVICE
+    class Price {
+        -priceId: Long
+        -bookId: Long
+        -priceExclVat: BigDecimal
+        -priceInclVat: BigDecimal
+        -taxAmount: BigDecimal
+        -currency: String
+        +getId(): Long
+        +getBookId(): Long
+        +getPriceExclVat(): BigDecimal
+        +getPriceInclVat(): BigDecimal
+        +getTaxAmount(): BigDecimal
+        +getCurrency(): String
+    }
+
+    class PriceController {
+        -priceService: PriceService
+        +getPriceById(id): ResponseEntity
+        +createPrice(price): ResponseEntity
+        +updatePrice(id, price): ResponseEntity
+        +deletePrice(id): ResponseEntity
+    }
+
+    class PriceService {
+        -priceRepository: PriceRepository
+        +getPriceById(id): Price
+        +createPrice(price): Price
+        +updatePrice(id, price): Price
+        +deletePrice(id): void
+    }
+
+    class PriceRepository {
+        +findById(id): Optional~Price~
+        +save(price): Price
+        +deleteById(id): void
+        +findByBookId(bookId): Optional~Price~
+    }
+
+    class PriceDTO {
+        -priceId: Long
+        -bookId: Long
+        -priceExclVat: BigDecimal
+        -priceInclVat: BigDecimal
+        -taxAmount: BigDecimal
+        -currency: String
+    }
+
+    %% RELATIONSHIPS
+    BookController --> BookService
+    BookService --> BookRepository
+    BookService --> Book
+    BookService --> PriceServiceClient
+    Book --> BookDTO
+    BookRepository --> Book
+
+    PriceServiceClient -->REST Call PriceController
+    PriceController --> PriceService
+    PriceService --> PriceRepository
+    PriceService --> Price
+    Price --> PriceDTO
+    PriceRepository --> Price
