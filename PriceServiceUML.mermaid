@@ -1,0 +1,76 @@
+classDiagram
+    %% PRICE SERVICE
+    class Price {
+        -priceId: Long
+        -bookId: Long
+        -priceExclVat: BigDecimal
+        -taxAmount: BigDecimal
+        -currency: String
+        +getId(): Long
+        +getBookId(): Long
+        +getPriceExclVat(): BigDecimal
+        +getTaxAmount(): BigDecimal
+        +getPriceInclVat(): BigDecimal*
+        +getCurrency(): String
+    }
+
+    class PriceController {
+        -priceService: PriceService
+        +getPriceById(id): ResponseEntity
+        +getPriceByBookId(bookId): ResponseEntity
+        +createPrice(price): ResponseEntity
+        +updatePrice(id, price): ResponseEntity
+        +deletePrice(id): ResponseEntity
+        +getAllPrices(page, size): ResponseEntity
+    }
+
+    class PriceService {
+        -priceRepository: PriceRepository
+        -priceMapper: PriceMapper
+        +getPriceById(id): Price
+        +getPriceByBookId(bookId): Price
+        +createPrice(price): Price
+        +updatePrice(id, price): Price
+        +deletePrice(id): void
+        +getAllPrices(pageable): Page~Price~
+    }
+
+    class PriceRepository {
+        +findById(id): Optional~Price~
+        +findByBookId(bookId): Optional~Price~
+        +save(price): Price
+        +deleteById(id): void
+        +findAll(pageable): Page~Price~
+    }
+
+    class PriceRequestDTO {
+        -bookId: Long
+        -priceExclVat: BigDecimal
+        -taxAmount: BigDecimal
+        -currency: String
+    }
+
+    class PriceResponseDTO {
+        -priceId: Long
+        -bookId: Long
+        -priceExclVat: BigDecimal
+        -taxAmount: BigDecimal
+        -priceInclVat: BigDecimal*
+        -currency: String
+    }
+
+    class PriceMapper {
+        +mapRequestDtoToPrice(dto): Price
+        +mapPriceToResponseDto(price): PriceResponseDTO
+    }
+
+    %% RELATIONSHIPS
+    PriceController --> PriceService
+    PriceService --> PriceRepository
+    PriceService --> Price
+    PriceService --> PriceMapper
+    Price --> PriceRequestDTO
+    Price --> PriceResponseDTO
+    PriceMapper --> PriceRequestDTO
+    PriceMapper --> PriceResponseDTO
+    PriceRepository --> Price

@@ -1,4 +1,8 @@
 package com.categoryservice.category.dto;
 
-public record CategoryResponseDTO (){
+public record CategoryResponseDTO (
+        Long id,
+        Long categoryId,
+        String categoryName
+){
 }
