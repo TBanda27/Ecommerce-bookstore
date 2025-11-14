@@ -1,0 +1,63 @@
+classDiagram
+    %% CATEGORY SERVICE
+    class Category {
+        -categoryId: Long
+        -name: String
+        +getId(): Long
+        +getName(): String
+    }
+
+    class CategoryController {
+        -categoryService: CategoryService
+        +getAllCategories(): ResponseEntity
+        +getCategoryById(id): ResponseEntity
+        +createCategory(category): ResponseEntity
+        +updateCategory(id, category): ResponseEntity
+        +deleteCategory(id): ResponseEntity
+        +getCategoriesPaginated(page, size): ResponseEntity
+    }
+
+    class CategoryService {
+        -categoryRepository: CategoryRepository
+        -categoryMapper: CategoryMapper
+        +getAllCategories(): List~Category~
+        +getCategoryById(id): Category
+        +createCategory(category): Category
+        +updateCategory(id, category): Category
+        +deleteCategory(id): void
+        +getCategoriesPaginated(pageable): Page~Category~
+    }
+
+    class CategoryRepository {
+        +findAll(): List~Category~
+        +findAll(pageable): Page~Category~
+        +findById(id): Optional~Category~
+        +save(category): Category
+        +deleteById(id): void
+        +findByNameContaining(name): List~Category~
+    }
+
+    class CategoryRequestDTO {
+        -name: String
+    }
+
+    class CategoryResponseDTO {
+        -categoryId: Long
+        -name: String
+    }
+
+    class CategoryMapper {
+        +mapRequestDtoToCategory(dto): Category
+        +mapCategoryToResponseDto(category): CategoryResponseDTO
+    }
+
+    %% RELATIONSHIPS
+    CategoryController --> CategoryService
+    CategoryService --> CategoryRepository
+    CategoryService --> Category
+    CategoryService --> CategoryMapper
+    Category --> CategoryRequestDTO
+    Category --> CategoryResponseDTO
+    CategoryMapper --> CategoryRequestDTO
+    CategoryMapper --> CategoryResponseDTO
+    CategoryRepository --> Category
