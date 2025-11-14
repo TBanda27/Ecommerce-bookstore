@@ -1,0 +1,72 @@
+classDiagram
+    %% INVENTORY SERVICE
+    class Inventory {
+        -inventoryId: Long
+        -bookId: Long
+        -stockQuantity: Integer
+        -availabilityStatus: Boolean
+        +getId(): Long
+        +getBookId(): Long
+        +getStockQuantity(): Integer
+        +isAvailable(): Boolean
+    }
+
+    class InventoryController {
+        -inventoryService: InventoryService
+        +getInventoryById(id): ResponseEntity
+        +getInventoryByBookId(bookId): ResponseEntity
+        +createInventory(inventory): ResponseEntity
+        +updateInventory(id, inventory): ResponseEntity
+        +deleteInventory(id): ResponseEntity
+        +getAllInventories(page, size): ResponseEntity
+        +updateStock(bookId, quantity): ResponseEntity
+    }
+
+    class InventoryService {
+        -inventoryRepository: InventoryRepository
+        -inventoryMapper: InventoryMapper
+        +getInventoryById(id): Inventory
+        +getInventoryByBookId(bookId): Inventory
+        +createInventory(inventory): Inventory
+        +updateInventory(id, inventory): Inventory
+        +deleteInventory(id): void
+        +getAllInventories(pageable): Page~Inventory~
+        +updateStock(bookId, quantity): Inventory
+    }
+
+    class InventoryRepository {
+        +findById(id): Optional~Inventory~
+        +findByBookId(bookId): Optional~Inventory~
+        +save(inventory): Inventory
+        +deleteById(id): void
+        +findAll(pageable): Page~Inventory~
+    }
+
+    class InventoryRequestDTO {
+        -bookId: Long
+        -stockQuantity: Integer
+        -availabilityStatus: Boolean
+    }
+
+    class InventoryResponseDTO {
+        -inventoryId: Long
+        -bookId: Long
+        -stockQuantity: Integer
+        -availabilityStatus: Boolean
+    }
+
+    class InventoryMapper {
+        +mapRequestDtoToInventory(dto): Inventory
+        +mapInventoryToResponseDto(inventory): InventoryResponseDTO
+    }
+
+    %% RELATIONSHIPS
+    InventoryController --> InventoryService
+    InventoryService --> InventoryRepository
+    InventoryService --> Inventory
+    InventoryService --> InventoryMapper
+    Inventory --> InventoryRequestDTO
+    Inventory --> InventoryResponseDTO
+    InventoryMapper --> InventoryRequestDTO
+    InventoryMapper --> InventoryResponseDTO
+    InventoryRepository --> Inventory
