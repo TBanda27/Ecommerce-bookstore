@@ -1,31 +1,38 @@
-package com.categoryservice.category.entity;
+package com.priceservice.price.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.antlr.v4.runtime.misc.NotNull;
+
+import java.math.BigDecimal;
 
 @Entity
+@Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-public class Category {
-
+public class Price {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long categoryId;
+    @Positive
+    private Long priceId;
+
+    @Positive
+    private BigDecimal priceExclVat;
+
+    @Positive
+    private BigDecimal taxAmount;
 
     @NotBlank
-    @Size(min = 2, max = 255)
-    private String categoryName;
+    private String currency;
+
 }
