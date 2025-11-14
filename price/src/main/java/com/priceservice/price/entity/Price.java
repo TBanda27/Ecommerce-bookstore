@@ -24,7 +24,7 @@ public class Price {
     private Long id;
 
     @Positive
-    private Long priceId;
+    private Long bookId;
 
     @Positive
     private BigDecimal priceExclVat;
