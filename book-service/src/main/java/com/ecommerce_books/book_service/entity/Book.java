@@ -34,16 +34,4 @@ public class Book {
     @Positive
     private Long categoryId;
 
-    @Positive
-    private Long priceId;
-
-    @Min(0)
-    private Integer stockStatus;
-
-    @NotNull
-    private Boolean availabilityStatus;
-
-    @Min(0)
-    private Integer numberOfReviews;
-
 }

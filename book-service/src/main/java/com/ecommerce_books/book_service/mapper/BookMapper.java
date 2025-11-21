@@ -1,9 +1,10 @@
 package com.ecommerce_books.book_service.mapper;
 
-import com.ecommerce_books.book_service.dto.BookRequestDTO;
-import com.ecommerce_books.book_service.dto.BookResponseDTO;
+import com.ecommerce_books.book_service.dto.*;
 import com.ecommerce_books.book_service.entity.Book;
 import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
 
 @Component
 public class BookMapper {
@@ -14,14 +15,13 @@ public class BookMapper {
                 .bookCoverImage(bookRequestDTO.bookCoverImage())
                 .uniqueProductCode(bookRequestDTO.uniqueProductCode())
                 .categoryId(bookRequestDTO.categoryId())
-                .priceId(bookRequestDTO.priceId())
-                .stockStatus(bookRequestDTO.stockStatus())
-                .availabilityStatus(bookRequestDTO.availabilityStatus())
-                .numberOfReviews(bookRequestDTO.numberOfReviews())
                 .build();
     }
 
-    public BookResponseDTO mapBookToBookResponseDTO(Book book) {
+    public BookResponseDTO mapBookToBookResponseDTO(Book book,
+                                                    CategoryResponseDTO categoryResponseDTO,
+                                                    PriceResponseDTO priceResponseDTO,
+                                                    InventoryResponseDTO inventoryResponseDTO) {
         return new BookResponseDTO(
                 book.getId(),
                 book.getName(),
@@ -29,14 +29,15 @@ public class BookMapper {
                 book.getBookCoverImage(),
                 book.getUniqueProductCode(),
                 book.getCategoryId(),
-                "",
-                book.getPriceId(),
-                "",
-                "",
-                "",
-                book.getStockStatus(),
-                book.getAvailabilityStatus(),
-                book.getNumberOfReviews()
+                categoryResponseDTO.categoryName(),
+                priceResponseDTO.id(),
+                priceResponseDTO.priceExclVat(),
+                priceResponseDTO.priceInclVat(),
+                priceResponseDTO.currency(),
+                inventoryResponseDTO.stockQuantity(),
+                inventoryResponseDTO.availabilityStatus(),
+                0
+
         );
     }
 }

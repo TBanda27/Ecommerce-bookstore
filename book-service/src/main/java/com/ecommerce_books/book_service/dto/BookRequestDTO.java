@@ -19,21 +19,7 @@ public record BookRequestDTO(
 
         @NotNull(message = "Category ID is required")
         @Positive(message = "Category ID must be positive")
-        Long categoryId,
+        Long categoryId
 
-        @NotNull(message = "Price ID is required")
-        @Positive(message = "Price ID must be positive")
-        Long priceId,
-
-        @NotNull(message = "Stock status is required")
-        @Min(value = 0, message = "Stock status cannot be negative")
-        Integer stockStatus,
-
-        @NotNull(message = "Availability status is required")
-        Boolean availabilityStatus,
-
-        @NotNull(message = "Number of reviews is required")
-        @Min(value = 0, message = "Number of reviews cannot be negative")
-        Integer numberOfReviews
 ) {
 }

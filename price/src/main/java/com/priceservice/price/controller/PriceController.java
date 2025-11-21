@@ -44,4 +44,17 @@ public class PriceController {
         priceService.deletePrice(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/book/{bookId}")
+    ResponseEntity<PriceResponseDTO> getInventoryByBookId(@PathVariable("bookId") Long bookId){
+        log.info("Price Controller: Request to get price by book id: {}", bookId);
+        return new ResponseEntity<>(priceService.getPriceByBookId(bookId), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/book/{bookId}")
+    ResponseEntity<String> deletePriceByBookId(@PathVariable("bookId") Long bookId){
+        log.info("Price Controller: Request to delete book by book id: {}", bookId);
+        priceService.deleteByBookId(bookId);
+        return ResponseEntity.noContent().build();
+    }
 }

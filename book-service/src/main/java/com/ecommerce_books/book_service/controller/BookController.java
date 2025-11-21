@@ -1,5 +1,6 @@
 package com.ecommerce_books.book_service.controller;
 
+import com.ecommerce_books.book_service.dto.BookCompleteRequestDTO;
 import com.ecommerce_books.book_service.dto.BookRequestDTO;
 import com.ecommerce_books.book_service.dto.BookResponseDTO;
 import com.ecommerce_books.book_service.service.BookService;
@@ -21,7 +22,7 @@ public class BookController {
     }
 
     @PostMapping
-    public ResponseEntity<BookResponseDTO> saveBook(@Valid @RequestBody BookRequestDTO bookRequestDTO) {
+    public ResponseEntity<BookResponseDTO> saveBook(@Valid @RequestBody BookCompleteRequestDTO bookRequestDTO) {
         log.info("Book Controller: Request to save a book: {}", bookRequestDTO);
         return new ResponseEntity<>(bookService.saveBook(bookRequestDTO), HttpStatus.CREATED);
     }
@@ -35,9 +36,10 @@ public class BookController {
     @GetMapping
     public ResponseEntity<Page<BookResponseDTO>> getAllBooks(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        log.info("Book Controller: Request to get all books - page: {}, size: {}", page, size);
-        return new ResponseEntity<>(bookService.getAllBooks(page, size), HttpStatus.OK);
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Long categoryId) {
+        log.info("Book Controller: Request to get all books - page: {}, size: {}, categoryId: {}", page, size, categoryId);
+        return new ResponseEntity<>(bookService.getAllBooks(page, size, categoryId), HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
@@ -51,6 +53,12 @@ public class BookController {
         log.info("Book Controller: Request to delete a book with id: {}", id);
         bookService.deleteBookById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/exists")
+    public ResponseEntity<Boolean> checkBookExists(@PathVariable("id") Long id) {
+        log.info("Book Controller: Request to check if book exists with id: {}", id);
+        return new ResponseEntity<>(bookService.bookExists(id), HttpStatus.OK);
     }
 
 }

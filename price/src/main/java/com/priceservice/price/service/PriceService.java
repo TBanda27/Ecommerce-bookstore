@@ -3,9 +3,12 @@ package com.priceservice.price.service;
 import com.priceservice.price.dto.PriceRequestDTO;
 import com.priceservice.price.dto.PriceResponseDTO;
 import com.priceservice.price.entity.Price;
+import com.priceservice.price.feignclient.BookClient;
 import com.priceservice.price.mapper.PriceMapper;
 import com.priceservice.price.repository.PriceRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,14 +17,30 @@ public class PriceService {
 
     private final PriceRepository priceRepository;
     private final PriceMapper priceMapper;
+    private final BookClient bookClient;
 
-    public PriceService(PriceRepository priceRepository, PriceMapper priceMapper) {
+    public PriceService(PriceRepository priceRepository, PriceMapper priceMapper, BookClient bookClient) {
         this.priceRepository = priceRepository;
         this.priceMapper = priceMapper;
+        this.bookClient = bookClient;
     }
 
     public PriceResponseDTO createPrice(PriceRequestDTO priceRequestDTO) {
         log.info("Price Service: Creating price: {}", priceRequestDTO);
+
+        // Validate that book exists
+        try {
+            ResponseEntity<Boolean> response = bookClient.checkBookExists(priceRequestDTO.bookId());
+            if (response.getBody() == null || !response.getBody()) {
+                throw new IllegalArgumentException("Cannot create price: Book with ID " + priceRequestDTO.bookId() + " does not exist");
+            }
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Book with ID {} not found", priceRequestDTO.bookId());
+            throw new IllegalArgumentException("Cannot create price: Book with ID " + priceRequestDTO.bookId() + " does not exist");
+        }
+
         Price price = priceMapper.mapRequestDtoToPrice(priceRequestDTO);
         Price savedPrice = priceRepository.saveAndFlush(price);
         log.info("Price Service: Price created successfully: {}", savedPrice);
@@ -36,6 +55,20 @@ public class PriceService {
 
     public PriceResponseDTO updatePrice(Long id, PriceRequestDTO priceRequestDTO) {
         log.info("Price Service: Updating price with id: {} - {}", id, priceRequestDTO);
+
+        // Validate that book exists
+        try {
+            ResponseEntity<Boolean> response = bookClient.checkBookExists(priceRequestDTO.bookId());
+            if (response.getBody() == null || !response.getBody()) {
+                throw new IllegalArgumentException("Cannot update price: Book with ID " + priceRequestDTO.bookId() + " does not exist");
+            }
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Book with ID {} not found", priceRequestDTO.bookId());
+            throw new IllegalArgumentException("Cannot update price: Book with ID " + priceRequestDTO.bookId() + " does not exist");
+        }
+
         Price existingPrice = priceRepository.getReferenceById(id);
 
         existingPrice.setBookId(priceRequestDTO.bookId());
@@ -51,6 +84,33 @@ public class PriceService {
     public void deletePrice(Long id) {
         log.info("Price Service: Deleting price by id: {}", id);
         Price price = priceRepository.getReferenceById(id);
+
+        // Check if book still exists - prevent delete if it does
+        try {
+            ResponseEntity<Boolean> response = bookClient.checkBookExists(price.getBookId());
+            if (response.getBody() != null && response.getBody()) {
+                log.error("Cannot delete price: Book with ID {} still exists", price.getBookId());
+                throw new IllegalStateException("Cannot delete price: Book with ID " + price.getBookId() + " still exists. Delete the book first.");
+            }
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (Exception e) {
+            // Book doesn't exist, safe to delete price
+            log.info("Book not found, proceeding with price deletion");
+        }
+
+        priceRepository.delete(price);
+    }
+
+    public PriceResponseDTO getPriceByBookId(Long bookId) {
+        log.info("Price Service: Getting price by book id: {}", bookId);
+        Price price = priceRepository.getByBookId(bookId);
+        return priceMapper.mapPriceToResponseDto(price);
+    }
+
+    public void deleteByBookId(Long bookId) {
+        log.info("Price Service: Deleting price by book id: {}", bookId);
+        Price price = priceRepository.getByBookId(bookId);
         priceRepository.delete(price);
     }
 }

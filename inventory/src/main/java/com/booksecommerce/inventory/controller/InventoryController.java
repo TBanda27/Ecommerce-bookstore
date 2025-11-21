@@ -33,6 +33,11 @@ public class InventoryController {
         inventoryService.deleteInventoryById(id);
         return  new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+    @GetMapping("/book/{bookId}")
+    ResponseEntity<InventoryResponseDTO> getInventoryByBookId(@PathVariable("bookId") Long bookId){
+        log.info("Inventory Controller: getInventoryByBookId: {}", bookId);
+        return new ResponseEntity<>(inventoryService.getInventoryByBookId(bookId), HttpStatus.OK);
+    }
 
     @GetMapping
     public ResponseEntity<Page<InventoryResponseDTO>> getAllInventory(
@@ -52,5 +57,12 @@ public class InventoryController {
     public ResponseEntity<InventoryResponseDTO> updateInventory(@PathVariable("id") Long id, @Valid @RequestBody InventoryRequestDTO inventoryRequestDTO){
         log.info("Inventory Controller: Request to update inventory with id: {} - {}", id, inventoryRequestDTO);
         return new ResponseEntity<>(inventoryService.updateInventory(id, inventoryRequestDTO), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/book/{bookId}")
+    ResponseEntity<String> deletePriceByBookId(@PathVariable("bookId") Long bookId){
+        log.info("Inventory Controller: Request to delete book by book id: {}", bookId);
+        inventoryService.deleteByBookId(bookId);
+        return ResponseEntity.noContent().build();
     }
 }
