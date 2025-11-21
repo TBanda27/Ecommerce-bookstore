@@ -3,6 +3,7 @@ package com.booksecommerce.inventory.controller;
 import com.booksecommerce.inventory.dto.InventoryRequestDTO;
 import com.booksecommerce.inventory.dto.InventoryResponseDTO;
 import com.booksecommerce.inventory.service.InventoryService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -21,7 +22,7 @@ public class InventoryController {
     }
 
     @PostMapping
-    public ResponseEntity<InventoryResponseDTO> saveInventory(@RequestBody InventoryRequestDTO inventoryRequestDTO){
+    public ResponseEntity<InventoryResponseDTO> saveInventory(@Valid @RequestBody InventoryRequestDTO inventoryRequestDTO){
         log.info("Inventory Controller: saveInventory: {}", inventoryRequestDTO);
         return new ResponseEntity<>(inventoryService.saveInventory(inventoryRequestDTO), HttpStatus.CREATED);
     }
@@ -45,5 +46,11 @@ public class InventoryController {
     public ResponseEntity<InventoryResponseDTO> getInventoryById(@PathVariable Long id){
         log.info("Inventory Controller getInventoryById: id {}", id);
         return new ResponseEntity<>(inventoryService.getInventoryById(id), HttpStatus.OK);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<InventoryResponseDTO> updateInventory(@PathVariable("id") Long id, @Valid @RequestBody InventoryRequestDTO inventoryRequestDTO){
+        log.info("Inventory Controller: Request to update inventory with id: {} - {}", id, inventoryRequestDTO);
+        return new ResponseEntity<>(inventoryService.updateInventory(id, inventoryRequestDTO), HttpStatus.OK);
     }
 }

@@ -3,6 +3,7 @@ package com.categoryservice.category.controller;
 import com.categoryservice.category.dto.CategoryRequestDTO;
 import com.categoryservice.category.dto.CategoryResponseDTO;
 import com.categoryservice.category.service.CategoryService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -21,7 +22,7 @@ public class CategoryController {
     }
 
     @PostMapping
-    public ResponseEntity<CategoryResponseDTO> createCategory(@RequestBody CategoryRequestDTO categoryRequestDTO) {
+    public ResponseEntity<CategoryResponseDTO> createCategory(@Valid @RequestBody CategoryRequestDTO categoryRequestDTO) {
         log.info("Category Controller: Request to createCategory a new category : {}", categoryRequestDTO);
         return new ResponseEntity<>(categoryService.createCategory(categoryRequestDTO), HttpStatus.CREATED);
     }
@@ -41,7 +42,7 @@ public class CategoryController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CategoryResponseDTO> updateCategory(@PathVariable("id") Long id, @RequestBody CategoryRequestDTO categoryRequestDTO) {
+    public ResponseEntity<CategoryResponseDTO> updateCategory(@PathVariable("id") Long id, @Valid @RequestBody CategoryRequestDTO categoryRequestDTO) {
         log.info("Category Controller: Request to updateCategory with id: {} - {}", id, categoryRequestDTO);
         return new ResponseEntity<>(categoryService.updateCategory(id, categoryRequestDTO), HttpStatus.OK);
     }

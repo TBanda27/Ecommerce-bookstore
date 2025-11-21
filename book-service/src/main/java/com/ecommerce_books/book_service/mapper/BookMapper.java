@@ -14,7 +14,6 @@ public class BookMapper {
                 .bookCoverImage(bookRequestDTO.bookCoverImage())
                 .uniqueProductCode(bookRequestDTO.uniqueProductCode())
                 .categoryId(bookRequestDTO.categoryId())
-                .categoryId(bookRequestDTO.categoryId())
                 .priceId(bookRequestDTO.priceId())
                 .stockStatus(bookRequestDTO.stockStatus())
                 .availabilityStatus(bookRequestDTO.availabilityStatus())

@@ -3,6 +3,7 @@ package com.priceservice.price.controller;
 import com.priceservice.price.dto.PriceRequestDTO;
 import com.priceservice.price.dto.PriceResponseDTO;
 import com.priceservice.price.service.PriceService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class PriceController {
     }
 
     @PostMapping
-    public ResponseEntity<PriceResponseDTO> createPrice(@RequestBody PriceRequestDTO priceRequestDTO) {
+    public ResponseEntity<PriceResponseDTO> createPrice(@Valid @RequestBody PriceRequestDTO priceRequestDTO) {
         log.info("Price Controller: Request to create price: {}", priceRequestDTO);
         return new ResponseEntity<>(priceService.createPrice(priceRequestDTO), HttpStatus.CREATED);
     }
@@ -32,7 +33,7 @@ public class PriceController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PriceResponseDTO> updatePrice(@PathVariable("id") Long id, @RequestBody PriceRequestDTO priceRequestDTO) {
+    public ResponseEntity<PriceResponseDTO> updatePrice(@PathVariable("id") Long id, @Valid @RequestBody PriceRequestDTO priceRequestDTO) {
         log.info("Price Controller: Request to update price with id: {} - {}", id, priceRequestDTO);
         return new ResponseEntity<>(priceService.updatePrice(id, priceRequestDTO), HttpStatus.OK);
     }

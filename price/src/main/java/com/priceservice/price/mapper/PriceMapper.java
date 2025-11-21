@@ -10,7 +10,7 @@ public class PriceMapper {
 
     public Price mapRequestDtoToPrice(PriceRequestDTO priceRequestDTO) {
         return Price.builder()
-                .bookId(priceRequestDTO.priceId())
+                .bookId(priceRequestDTO.bookId())
                 .priceExclVat(priceRequestDTO.priceExclVat())
                 .taxAmount(priceRequestDTO.taxAmount())
                 .currency(priceRequestDTO.currency())

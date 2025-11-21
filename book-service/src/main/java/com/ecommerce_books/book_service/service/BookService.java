@@ -9,10 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @Slf4j
@@ -20,6 +16,7 @@ public class BookService {
 
     private final BookMapper bookMapper;
     private final BookRepository bookRepository;
+
     public BookService(BookMapper bookMapper, BookRepository bookRepository) {
         this.bookMapper = bookMapper;
         this.bookRepository = bookRepository;
@@ -33,7 +30,7 @@ public class BookService {
         return bookMapper.mapBookToBookResponseDTO(savedBook);
     }
 
-    public BookResponseDTO getBookById( Long id) {
+    public BookResponseDTO getBookById(Long id) {
         log.info("Book Service: Request to get Book by id: {}", id);
         Book book = bookRepository.getReferenceById(id);
         return bookMapper.mapBookToBookResponseDTO(book);

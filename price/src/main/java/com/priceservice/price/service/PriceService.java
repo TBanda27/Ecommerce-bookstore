@@ -38,7 +38,7 @@ public class PriceService {
         log.info("Price Service: Updating price with id: {} - {}", id, priceRequestDTO);
         Price existingPrice = priceRepository.getReferenceById(id);
 
-        existingPrice.setBookId(priceRequestDTO.priceId());
+        existingPrice.setBookId(priceRequestDTO.bookId());
         existingPrice.setPriceExclVat(priceRequestDTO.priceExclVat());
         existingPrice.setTaxAmount(priceRequestDTO.taxAmount());
         existingPrice.setCurrency(priceRequestDTO.currency());

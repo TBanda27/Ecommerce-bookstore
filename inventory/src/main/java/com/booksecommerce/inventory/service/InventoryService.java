@@ -32,8 +32,9 @@ public class InventoryService {
     }
 
     public void deleteInventoryById(Long id){
-        inventoryRepository.findById(id);
-        inventoryRepository.deleteById(id);
+        Inventory inventory = inventoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Inventory not found with id: " + id));
+        inventoryRepository.delete(inventory);
     }
 
     public InventoryResponseDTO getInventoryById(Long inventoryId) {
@@ -47,6 +48,19 @@ public class InventoryService {
             PageRequest pageRequest = PageRequest.of(page, size);
             Page<Inventory> bookPage = inventoryRepository.findAll(pageRequest);
             return bookPage.map(inventoryMapper::mapInventoryToInventoryResponseDTO);
+    }
+
+    public InventoryResponseDTO updateInventory(Long id, InventoryRequestDTO inventoryRequestDTO) {
+        log.info("Inventory Service: Updating inventory with id: {} - {}", id, inventoryRequestDTO);
+        Inventory existingInventory = inventoryRepository.getReferenceById(id);
+
+        existingInventory.setBookId(inventoryRequestDTO.bookId());
+        existingInventory.setStockQuantity(inventoryRequestDTO.stockQuantity());
+        existingInventory.setAvailabilityStatus(inventoryRequestDTO.availabilityStatus());
+
+        Inventory updatedInventory = inventoryRepository.saveAndFlush(existingInventory);
+        log.info("Inventory Service: Inventory updated successfully: {}", updatedInventory);
+        return inventoryMapper.mapInventoryToInventoryResponseDTO(updatedInventory);
     }
 
 }

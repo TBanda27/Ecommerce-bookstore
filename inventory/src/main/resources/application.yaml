@@ -1,8 +1,8 @@
 spring:
   application:
-    name: book-service
+    name: inventory-service
   datasource:
-    url: jdbc:mysql://localhost:3306/books_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/inventory_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -16,10 +16,8 @@ spring:
         dialect: org.hibernate.dialect.MySQL8Dialect
         format_sql: true
 
-
-
 server:
-  port: 8000
+  port: 8300
 
 eureka:
   instance:
