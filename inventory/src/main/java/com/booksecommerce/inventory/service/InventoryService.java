@@ -3,13 +3,14 @@ package com.booksecommerce.inventory.service;
 import com.booksecommerce.inventory.dto.InventoryRequestDTO;
 import com.booksecommerce.inventory.dto.InventoryResponseDTO;
 import com.booksecommerce.inventory.entity.Inventory;
+import com.booksecommerce.inventory.exceptions.BadRequestException;
+import com.booksecommerce.inventory.exceptions.InventoryNotFoundException;
 import com.booksecommerce.inventory.feignclient.BookClient;
 import com.booksecommerce.inventory.mapper.InventoryMapper;
 import com.booksecommerce.inventory.repository.InventoryRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -31,13 +32,13 @@ public class InventoryService {
         try {
             ResponseEntity<Boolean> response = bookClient.checkBookExists(inventoryRequestDTO.bookId());
             if (response.getBody() == null || !response.getBody()) {
-                throw new IllegalArgumentException("Cannot create inventory: Book with ID " + inventoryRequestDTO.bookId() + " does not exist");
+                throw new BadRequestException("Cannot create inventory: Book with ID " + inventoryRequestDTO.bookId() + " does not exist");
             }
-        } catch (IllegalArgumentException e) {
+        } catch (BadRequestException e) {
             throw e;
         } catch (Exception e) {
             log.error("Book with ID {} not found", inventoryRequestDTO.bookId());
-            throw new IllegalArgumentException("Cannot create inventory: Book with ID " + inventoryRequestDTO.bookId() + " does not exist");
+            throw new BadRequestException("Cannot create inventory: Book with ID " + inventoryRequestDTO.bookId() + " does not exist");
         }
 
         Inventory inventory = Inventory.builder()
@@ -51,16 +52,16 @@ public class InventoryService {
 
     public void deleteInventoryById(Long id){
         Inventory inventory = inventoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Inventory not found with id: " + id));
+                .orElseThrow(() -> new InventoryNotFoundException("Inventory not found with id: " + id));
 
         // Check if book still exists - prevent delete if it does
         try {
             ResponseEntity<Boolean> response = bookClient.checkBookExists(inventory.getBookId());
             if (response.getBody() != null && response.getBody()) {
                 log.error("Cannot delete inventory: Book with ID {} still exists", inventory.getBookId());
-                throw new IllegalStateException("Cannot delete inventory: Book with ID " + inventory.getBookId() + " still exists. Delete the book first.");
+                throw new BadRequestException("Cannot delete inventory: Book with ID " + inventory.getBookId() + " still exists. Delete the book first.");
             }
-        } catch (IllegalStateException e) {
+        } catch (BadRequestException e) {
             throw e;
         } catch (Exception e) {
             // Book doesn't exist, safe to delete inventory
@@ -72,7 +73,8 @@ public class InventoryService {
 
     public InventoryResponseDTO getInventoryById(Long inventoryId) {
         log.info("Inventory Service: Get inventory by id: {}", inventoryId);
-        Inventory inventory = inventoryRepository.getReferenceById(inventoryId);
+        Inventory inventory = inventoryRepository.findById(inventoryId)
+                .orElseThrow(() -> new InventoryNotFoundException("Inventory with id: " + inventoryId + " not found"));
         return inventoryMapper.mapInventoryToInventoryResponseDTO(inventory);
     }
 
@@ -90,16 +92,17 @@ public class InventoryService {
         try {
             ResponseEntity<Boolean> response = bookClient.checkBookExists(inventoryRequestDTO.bookId());
             if (response.getBody() == null || !response.getBody()) {
-                throw new IllegalArgumentException("Cannot update inventory: Book with ID " + inventoryRequestDTO.bookId() + " does not exist");
+                throw new BadRequestException("Cannot update inventory: Book with ID " + inventoryRequestDTO.bookId() + " does not exist");
             }
-        } catch (IllegalArgumentException e) {
+        } catch (BadRequestException e) {
             throw e;
         } catch (Exception e) {
             log.error("Book with ID {} not found", inventoryRequestDTO.bookId());
-            throw new IllegalArgumentException("Cannot update inventory: Book with ID " + inventoryRequestDTO.bookId() + " does not exist");
+            throw new BadRequestException("Cannot update inventory: Book with ID " + inventoryRequestDTO.bookId() + " does not exist");
         }
 
-        Inventory existingInventory = inventoryRepository.getReferenceById(id);
+        Inventory existingInventory = inventoryRepository.findById(id)
+                .orElseThrow(() -> new InventoryNotFoundException("Inventory with id: " + id + " not found"));
 
         existingInventory.setBookId(inventoryRequestDTO.bookId());
         existingInventory.setStockQuantity(inventoryRequestDTO.stockQuantity());
@@ -112,13 +115,15 @@ public class InventoryService {
 
     public InventoryResponseDTO getInventoryByBookId(Long bookId) {
         log.info("Inventory Service: Getting inventory by book id: {}", bookId);
-        Inventory inventory = inventoryRepository.getByBookId(bookId);
+        Inventory inventory = inventoryRepository.findByBookId(bookId)
+                .orElseThrow(() -> new InventoryNotFoundException("Inventory for book id: " + bookId + " not found"));
         return inventoryMapper.mapInventoryToInventoryResponseDTO(inventory);
     }
 
     public void deleteByBookId(Long bookId) {
         log.info("Inventory Service: Deleting inventory by book id: {}", bookId);
-        Inventory inventory = inventoryRepository.getByBookId(bookId);
+        Inventory inventory = inventoryRepository.findByBookId(bookId)
+                .orElseThrow(() -> new InventoryNotFoundException("Inventory for book id: " + bookId + " not found"));
         inventoryRepository.delete(inventory);
     }
 }
