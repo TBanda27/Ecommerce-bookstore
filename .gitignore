@@ -1,0 +1,12 @@
+/book-service/.gitattributes
+/eureka/.gitattributes
+/.idea/.gitignore
+/book-service/.gitignore
+/eureka/.gitignore
+/.idea/Books-Ecommerce Project.iml
+/.idea/compiler.xml
+/.idea/encodings.xml
+/.idea/jarRepositories.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/vcs.xml
