@@ -9,6 +9,17 @@ spring:
             locator:
               lower-case-service-id: true
               enabled: true
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowed-origins: "*"
+                allowed-methods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - OPTIONS
+                allowed-headers: "*"
 
 server:
   port: 9090
@@ -21,3 +32,16 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: Book-Service
+        url: /book-service/api-docs
+      - name: Category-Service
+        url: /category-service/api-docs
+      - name: Price-Service
+        url: /price-service/api-docs
+      - name: Inventory-Service
+        url: /inventory-service/api-docs

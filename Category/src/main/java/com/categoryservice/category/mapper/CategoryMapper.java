@@ -11,14 +11,12 @@ public class CategoryMapper {
     public CategoryResponseDTO categoryToCategoryResponseDTO(Category category) {
         return new CategoryResponseDTO(
                 category.getId(),
-                category.getCategoryId(),
                 category.getCategoryName()
         );
     }
 
     public Category categoryRequestDTOToCategory(CategoryRequestDTO categoryRequestDTO) {
         return Category.builder()
-                .categoryId(categoryRequestDTO.categoryId())
                 .categoryName(categoryRequestDTO.categoryName())
                 .build();
     }

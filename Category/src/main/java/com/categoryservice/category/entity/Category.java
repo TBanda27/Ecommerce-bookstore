@@ -23,8 +23,6 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long categoryId;
-
     @NotBlank
     @Size(min = 2, max = 255)
     private String categoryName;

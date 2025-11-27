@@ -53,10 +53,7 @@ public class CategoryService {
     public CategoryResponseDTO updateCategory(Long id, CategoryRequestDTO categoryRequestDTO) {
         log.info("Category Service: Updating category with id: {} - {}", id, categoryRequestDTO);
         Category existingCategory = categoryRepository.getReferenceById(id);
-
-        existingCategory.setCategoryId(categoryRequestDTO.categoryId());
         existingCategory.setCategoryName(categoryRequestDTO.categoryName());
-
         Category updatedCategory = categoryRepository.saveAndFlush(existingCategory);
         log.info("Category Service: Category updated successfully: {}", updatedCategory);
         return categoryMapper.categoryToCategoryResponseDTO(updatedCategory);
