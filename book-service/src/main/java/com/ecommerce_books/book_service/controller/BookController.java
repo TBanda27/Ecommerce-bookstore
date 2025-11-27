@@ -60,5 +60,4 @@ public class BookController {
         log.info("Book Controller: Request to check if book exists with id: {}", id);
         return new ResponseEntity<>(bookService.bookExists(id), HttpStatus.OK);
     }
-
 }

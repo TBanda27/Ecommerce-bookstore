@@ -2,6 +2,9 @@ package com.ecommerce_books.book_service.service;
 
 import com.ecommerce_books.book_service.dto.*;
 import com.ecommerce_books.book_service.entity.Book;
+import com.ecommerce_books.book_service.exceptions.BadRequestException;
+import com.ecommerce_books.book_service.exceptions.BookNotFoundException;
+import com.ecommerce_books.book_service.exceptions.CategoryNotFoundException;
 import com.ecommerce_books.book_service.feignclient.CategoryClient;
 import com.ecommerce_books.book_service.feignclient.InventoryClient;
 import com.ecommerce_books.book_service.feignclient.PriceClient;
@@ -35,7 +38,7 @@ public class BookService {
         CategoryResponseDTO categoryResponseDTO = categoryClient.getCategoryById(bookCompleteRequestDTO.bookRequestDTO().categoryId()).getBody();
         if (categoryResponseDTO == null) {
             log.error("Category with ID {} not found", bookCompleteRequestDTO.bookRequestDTO().categoryId());
-            throw new IllegalStateException("Category not found");
+            throw new CategoryNotFoundException("Category with id: " + bookCompleteRequestDTO.bookRequestDTO().categoryId() + " not found");
         }
         Book savedBook = bookRepository.saveAndFlush(book);
         PriceRequestDTO priceRequestDTO = new PriceRequestDTO(savedBook.getId(),
@@ -52,11 +55,11 @@ public class BookService {
             inventoryResponseDTO = inventoryClient.saveInventory(inventoryRequestDTO).getBody();
             if (priceResponseDTO == null || inventoryResponseDTO == null) {
                 deleteBookById(savedBook.getId());
-                throw new RuntimeException("Price or Inventory response is null");
+                throw new BadRequestException("Bad Request Price or Inventory response is null");
             }
         } catch (Exception e) {
             log.error("Failed to create price/inventory", e);
-            throw new RuntimeException("Book creation failed", e);
+            throw new BadRequestException("Book creation failed");
         }
         log.info("Book Service: Saving book finished: {}", savedBook.getId());
         return bookMapper.mapBookToBookResponseDTO(savedBook, categoryResponseDTO, priceResponseDTO, inventoryResponseDTO);
@@ -64,7 +67,9 @@ public class BookService {
 
     public BookResponseDTO getBookById(Long id) {
         log.info("Book Service: Request to get Book by id: {}", id);
-        Book book = bookRepository.getReferenceById(id);
+        Book book = bookRepository.findById(id).orElseThrow(
+                ()-> new BookNotFoundException("Book with id: " + id + " not found")
+        );
         PriceResponseDTO priceResponseDTO = priceClient.getPriceByBookId(book.getId()).getBody();
         InventoryResponseDTO inventoryResponseDTO = inventoryClient.getInventoryByBookId(book.getId()).getBody();
         CategoryResponseDTO categoryResponseDTO = categoryClient.getCategoryById(book.getCategoryId()).getBody();
@@ -76,7 +81,9 @@ public class BookService {
 
     public void deleteBookById( Long id) {
         log.info("Book Service: Request to delete Book by id: {}", id);
-        bookRepository.getReferenceById(id);
+        bookRepository.findById(id).orElseThrow(
+                ()-> new BookNotFoundException("Book with id: " + id + " not found")
+        );
         priceClient.deletePriceByBookId(id);
         inventoryClient.deleteInventoryByBookId(id);
         bookRepository.deleteById(id);
@@ -89,7 +96,9 @@ public class BookService {
 
     public BookResponseDTO updateBook(Long id, BookRequestDTO bookRequestDTO) {
         log.info("Book Service: Updating book with id: {} - {}", id, bookRequestDTO);
-        Book existingBook = bookRepository.getReferenceById(id);
+        Book existingBook = bookRepository.findById(id).orElseThrow(
+                ()-> new BookNotFoundException("Book with id: " + id + " not found")
+        );
         existingBook.setName(bookRequestDTO.name());
         existingBook.setDescription(bookRequestDTO.description());
         existingBook.setBookCoverImage(bookRequestDTO.bookCoverImage());
@@ -99,6 +108,7 @@ public class BookService {
         CategoryResponseDTO categoryResponseDTO = categoryClient.getCategoryById(bookRequestDTO.categoryId()).getBody();
         if (categoryResponseDTO == null) {
             log.error("Category with ID {} not found", bookRequestDTO.categoryId());
+            throw new CategoryNotFoundException("Category with ID " + bookRequestDTO.categoryId() + " not found");
         }
         InventoryResponseDTO inventoryResponseDTO;
         PriceResponseDTO priceResponseDTO;
@@ -106,11 +116,11 @@ public class BookService {
             inventoryResponseDTO = inventoryClient.getInventoryByBookId(updatedBook.getId()).getBody();
             priceResponseDTO = priceClient.getPriceByBookId(updatedBook.getId()).getBody();
             if(priceResponseDTO == null || inventoryResponseDTO == null) {
-                throw new IllegalStateException("Book data inconsistency: Price or Inventory not found");
+                throw new BadRequestException("Book data inconsistency: Price or Inventory not found");
             }
         }catch (Exception e){
             log.error("Failed to update price/inventory", e);
-            throw new RuntimeException("Book update failed", e);
+            throw new BadRequestException("Book update failed");
         }
         log.info("Book Service: Book updated successfully: {}", updatedBook);
         return bookMapper.mapBookToBookResponseDTO(updatedBook, categoryResponseDTO,  priceResponseDTO, inventoryResponseDTO );
@@ -127,6 +137,9 @@ public class BookService {
             PriceResponseDTO priceResponseDTO = priceClient.getPriceByBookId(book.getId()).getBody();
             InventoryResponseDTO inventoryResponseDTO = inventoryClient.getInventoryByBookId(book.getId()).getBody();
             CategoryResponseDTO categoryResponseDTO = categoryClient.getCategoryById(book.getCategoryId()).getBody();
+            if(priceResponseDTO == null || inventoryResponseDTO == null || categoryResponseDTO == null) {
+                throw new BadRequestException("Book data inconsistency: Category or Price or Inventory not found");
+            }
             return bookMapper.mapBookToBookResponseDTO(book, categoryResponseDTO, priceResponseDTO, inventoryResponseDTO);
         });
     }
