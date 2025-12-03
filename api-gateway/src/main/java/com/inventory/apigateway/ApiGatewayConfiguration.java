@@ -23,6 +23,12 @@ public class ApiGatewayConfiguration {
                 .route(p -> p.path("/category/**")
                         .filters(f -> f.stripPrefix(1))
                         .uri("lb://CATEGORY-SERVICE"))
+                .route(p -> p.path("/auth/**")
+                        .filters(f -> f.stripPrefix(1))
+                        .uri("lb://AUTH-SERVICE"))
+                .route(p -> p.path("/user/**")
+                        .filters(f -> f.stripPrefix(1))
+                        .uri("lb://AUTH-SERVICE"))
                 .build();
     }
 }
