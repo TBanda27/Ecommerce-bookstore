@@ -26,19 +26,28 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(ServerHttpSecurity.CorsSpec::disable)
                 .authorizeExchange(auth -> auth
-                        // Public endpoints - Auth
+                        // Public endpoints - Auth (with gateway prefix)
                         .pathMatchers("/auth/api/v1/auth/register").permitAll()
                         .pathMatchers("/auth/api/v1/auth/login").permitAll()
                         .pathMatchers("/auth/login/oauth2/**").permitAll()
                         .pathMatchers("/oauth2/**").permitAll()
+
+                        // Public endpoints - Auth (direct paths for Swagger)
+                        .pathMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/v1/user").permitAll()
 
                         // Public endpoints - Documentation and monitoring
                         .pathMatchers("/actuator/health").permitAll()
-                        .pathMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/api-docs/**", "/swagger-ui/index.html/**").permitAll()
+                        .pathMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/api-docs/**").permitAll()
                         .pathMatchers("/webjars/**").permitAll()
-                        .pathMatchers("/webjars/swagger-ui/**").permitAll()
-                        .pathMatchers("/webjars/swagger-ui/index.html").permitAll()
+
+                        // Allow API docs for each service
+                        .pathMatchers("/auth/api-docs", "/auth/v3/api-docs/**").permitAll()
+                        .pathMatchers("/books/api-docs", "/books/v3/api-docs/**").permitAll()
+                        .pathMatchers("/category/api-docs", "/category/v3/api-docs/**").permitAll()
+                        .pathMatchers("/price/api-docs", "/price/v3/api-docs/**").permitAll()
+                        .pathMatchers("/inventory/api-docs", "/inventory/v3/api-docs/**").permitAll()
 
                         // Public read access - GET only
                         .pathMatchers(HttpMethod.GET, "/api/v1/books/**").permitAll()

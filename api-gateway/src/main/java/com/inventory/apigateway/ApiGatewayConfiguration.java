@@ -11,6 +11,21 @@ public class ApiGatewayConfiguration {
     @Bean
     public RouteLocator gatewayRouter(RouteLocatorBuilder builder) {
         return builder.routes()
+                // Direct API routes (for Swagger UI)
+                .route(p -> p.path("/api/v1/auth/**")
+                        .uri("lb://AUTH-SERVICE"))
+                .route(p -> p.path("/api/v1/user/**")
+                        .uri("lb://AUTH-SERVICE"))
+                .route(p -> p.path("/api/v1/books/**")
+                        .uri("lb://BOOK-SERVICE"))
+                .route(p -> p.path("/api/v1/category/**")
+                        .uri("lb://CATEGORY-SERVICE"))
+                .route(p -> p.path("/api/v1/price/**")
+                        .uri("lb://PRICE-SERVICE"))
+                .route(p -> p.path("/api/v1/inventory/**")
+                        .uri("lb://INVENTORY-SERVICE"))
+
+                // Prefixed routes (for manual API calls)
                 .route(p -> p.path("/books/**")
                         .filters(f -> f.stripPrefix(1))
                         .uri("lb://BOOK-SERVICE"))

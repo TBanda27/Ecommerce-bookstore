@@ -24,7 +24,8 @@ import org.springframework.context.annotation.Configuration;
     servers = {
         @Server(
             description = "Local Development Server",
-            url = "http://localhost:8080"
+//            url = "http://localhost:8080"
+            url = "/"
         )
     },
     security = {
@@ -40,4 +41,5 @@ import org.springframework.context.annotation.Configuration;
     in = SecuritySchemeIn.HEADER
 )
 public class OpenApiConfig {
+
 }
