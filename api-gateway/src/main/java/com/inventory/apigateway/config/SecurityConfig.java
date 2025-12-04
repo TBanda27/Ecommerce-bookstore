@@ -21,7 +21,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) throws Exception {
+    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(ServerHttpSecurity.CorsSpec::disable)
@@ -48,6 +48,10 @@ public class SecurityConfig {
                         .pathMatchers("/category/api-docs", "/category/v3/api-docs/**").permitAll()
                         .pathMatchers("/price/api-docs", "/price/v3/api-docs/**").permitAll()
                         .pathMatchers("/inventory/api-docs", "/inventory/v3/api-docs/**").permitAll()
+                        .pathMatchers("/review/api-docs", "/review/v3/api-docs/**").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/v1/review").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/v1/review/**").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/v1/review/book/**").permitAll()
 
                         // Public read access - GET only
                         .pathMatchers(HttpMethod.GET, "/api/v1/books/**").permitAll()
@@ -79,6 +83,10 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, "/api/v1/users/**").hasRole("ADMIN")
                         .pathMatchers(HttpMethod.PUT, "/api/v1/users/**").hasRole("ADMIN")
                         .pathMatchers(HttpMethod.DELETE, "/uapi/v1/users/**").hasRole("ADMIN")
+                        // Admin-and user only endpoints - Review Service
+                        .pathMatchers(HttpMethod.PUT, "/api/v1/review/**").hasAnyRole("USER", "ADMIN")
+                        .pathMatchers(HttpMethod.POST, "/api/v1/review/**").hasAnyRole("USER", "ADMIN")
+                        .pathMatchers(HttpMethod.DELETE, "/api/v1/review/**").hasAnyRole("USER", "ADMIN")
                         // All other requests require authentication
                         .anyExchange().authenticated()
                 )

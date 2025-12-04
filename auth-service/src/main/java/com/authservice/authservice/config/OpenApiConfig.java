@@ -17,8 +17,8 @@ import org.springframework.context.annotation.Configuration;
         version = "1.0",
         description = "Authentication and User Management API with JWT-based security",
         contact = @Contact(
-            name = "API Support",
-            email = "me@thebanda.com"
+            name = "Tawanda Banda",
+            email = "thebanda27@gmail.com"
         )
     ),
     servers = {

@@ -1,4 +1,4 @@
-package com.booksecommerce.inventory.config;
+package com.reviews.reviews.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -27,9 +27,9 @@ public class OpenApiConfig {
 
         return new OpenAPI()
                 .info(new Info()
-                        .title("Inventory Service API")
+                        .title("Review Service API")
                         .version("1.0")
-                        .description("Inventory management service")
+                        .description("Review service")
                         .contact(contact))
                 .servers(List.of(gatewayServer))
                 .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))

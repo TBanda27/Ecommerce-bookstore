@@ -16,8 +16,6 @@ spring:
         dialect: org.hibernate.dialect.MySQL8Dialect
         format_sql: true
 
-
-
 server:
   port: 8200
 
@@ -35,4 +33,6 @@ springdoc:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
+  default-produces-media-type: application/json
+  override-with-generic-response: false
 

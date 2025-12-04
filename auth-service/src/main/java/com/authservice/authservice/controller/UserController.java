@@ -36,7 +36,7 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "Invalid input or email already exists")
         }
     )
-    @SecurityRequirements(value = {}) // Public endpoint
+    @SecurityRequirements() // Public endpoint
     public ResponseEntity<UserResponseDTO> registerUser(@RequestBody UserRegistrationRequestDTO userRegistrationRequestDTO) {
         log.info("userController: registerUser called with username: {}", userRegistrationRequestDTO);
         return new ResponseEntity<>(userService.registerUser(userRegistrationRequestDTO), HttpStatus.CREATED);
@@ -114,5 +114,21 @@ public class UserController {
         log.info("User Controller: Request to delete user with id: {}", id);
         userService.deleteUser(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/internal/{id}")
+    @Operation(
+        summary = "Get User By ID (Internal)",
+        description = "Internal endpoint for service-to-service communication. No authentication required.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "User found"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+        }
+    )
+    @SecurityRequirements() // No authentication required for internal calls
+    public ResponseEntity<UserResponseDTO> getUserByIdInternal(
+            @Parameter(description = "User ID") @PathVariable Long id) {
+        log.info("User Controller (Internal): Request to get user by id: {}", id);
+        return new ResponseEntity<>(userService.findUserById(id), HttpStatus.OK);
     }
 }

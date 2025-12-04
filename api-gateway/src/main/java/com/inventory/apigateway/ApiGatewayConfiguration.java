@@ -22,6 +22,8 @@ public class ApiGatewayConfiguration {
                         .uri("lb://CATEGORY-SERVICE"))
                 .route(p -> p.path("/api/v1/price/**")
                         .uri("lb://PRICE-SERVICE"))
+                .route(p -> p.path("/api/v1/review/**")
+                        .uri("lb://REVIEW-SERVICE"))
                 .route(p -> p.path("/api/v1/inventory/**")
                         .uri("lb://INVENTORY-SERVICE"))
 
@@ -41,6 +43,9 @@ public class ApiGatewayConfiguration {
                 .route(p -> p.path("/auth/**")
                         .filters(f -> f.stripPrefix(1))
                         .uri("lb://AUTH-SERVICE"))
+                .route(p -> p.path("/review/**")
+                        .filters(f -> f.stripPrefix(1))
+                        .uri("lb://REVIEW-SERVICE"))
                 .route(p -> p.path("/user/**")
                         .filters(f -> f.stripPrefix(1))
                         .uri("lb://AUTH-SERVICE"))

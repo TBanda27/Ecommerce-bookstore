@@ -1,8 +1,9 @@
 spring:
   application:
-    name: inventory-service
+    name: review-service
+
   datasource:
-    url: jdbc:mysql://localhost:3306/inventory_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/reviews_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -17,7 +18,7 @@ spring:
         format_sql: true
 
 server:
-  port: 8300
+  port: 8500
 
 eureka:
   instance:
@@ -35,3 +36,5 @@ springdoc:
     path: /swagger-ui.html
   default-produces-media-type: application/json
   override-with-generic-response: false
+
+

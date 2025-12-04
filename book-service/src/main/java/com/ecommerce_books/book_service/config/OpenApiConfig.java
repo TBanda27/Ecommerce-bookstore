@@ -2,6 +2,7 @@ package com.ecommerce_books.book_service.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
@@ -20,11 +21,16 @@ public class OpenApiConfig {
         gatewayServer.setUrl("http://localhost:9090");
         gatewayServer.setDescription("API Gateway");
 
+        Contact contact = new Contact();
+        contact.setName("Tawanda Banda");
+        contact.setEmail("thebanda27@gmail.com");
+
         return new OpenAPI()
                 .info(new Info()
                         .title("Book Service API")
                         .version("1.0")
-                        .description("Book management service"))
+                        .description("Book management service")
+                        .contact(contact))
                 .servers(List.of(gatewayServer))
                 .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
                 .components(new Components()
