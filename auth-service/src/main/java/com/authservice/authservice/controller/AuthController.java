@@ -2,6 +2,7 @@ package com.authservice.authservice.controller;
 
 import com.authservice.authservice.dto.LoginRequestDTO;
 import com.authservice.authservice.entity.User;
+import com.authservice.authservice.service.UserService;
 import com.authservice.authservice.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -17,10 +18,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -32,10 +30,12 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
+    private final UserService userService;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
+    public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UserService userService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
+        this.userService = userService;
     }
 
     @PostMapping("/login")
@@ -70,6 +70,9 @@ public class AuthController {
         if(user==null){
             throw new UsernameNotFoundException("User not found with email: " + loginRequestDTO.email());
         }
+        if(!user.isEnabled()){
+            throw new IllegalStateException("Account not verified. Please check your email for verification link.");
+        }
         String token = jwtUtil.generateToken(user);
         log.info("Generated JWT Token for user {}: {}", user.getUsername(), token);
         String jsonResponse = """
@@ -86,5 +89,18 @@ public class AuthController {
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(jsonResponse);
+    }
+    @GetMapping("/verify")
+    public ResponseEntity<String> verifyAccount(@RequestParam("token") String token) {
+        log.info("AuthController:verifyAccount - Token received");
+        String message = userService.verifyUser(token);
+        return ResponseEntity.ok(message);
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<String> resendVerification(@RequestParam("email") String email) {
+        log.info("AuthController:resendVerification - Email: {}", email);
+        userService.resendVerificationEmail(email);
+        return ResponseEntity.ok("Verification email sent successfully");
     }
 }

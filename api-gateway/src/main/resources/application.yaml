@@ -12,24 +12,44 @@ spring:
           globalcors:
             cors-configurations:
               '[/**]':
-                allowed-origins: "*"
+                allowed-origins:
+                  - "http://localhost:3000"
+                  - "http://localhost:4200"
                 allowed-methods:
                   - GET
                   - POST
                   - PUT
                   - DELETE
                   - OPTIONS
-                allowed-headers: "*"
+                allowed-headers:
+                  - Authorization
+                  - Content-Type
+                  - Accept
+                exposed-headers:
+                  - Authorization
+                allow-credentials: true
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+            redirect-uri: ${GOOGLE_REDIRECT_URI}
 
 server:
-  port: 9090
+  port: ${API_GATEWAY_PORT}
 
 eureka:
   instance:
     prefer-ip-address: true
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_URL}
     register-with-eureka: true
     fetch-registry: true
 
@@ -37,11 +57,19 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     urls:
+      - name: Auth-Service
+        url: /auth/api-docs
       - name: Book-Service
-        url: /book-service/api-docs
+        url: /books/api-docs
       - name: Category-Service
-        url: /category-service/api-docs
+        url: /category/api-docs
       - name: Price-Service
-        url: /price-service/api-docs
+        url: /price/api-docs
       - name: Inventory-Service
-        url: /inventory-service/api-docs
+        url: /inventory/api-docs
+      - name: Review-Service
+        url: /review/api-docs
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION}

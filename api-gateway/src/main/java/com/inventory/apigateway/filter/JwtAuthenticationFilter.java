@@ -60,7 +60,22 @@ public class JwtAuthenticationFilter implements WebFilter {
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(username, null, authorities);
 
-                return chain.filter(exchange)
+                // Extract userId from JWT and add to headers for downstream services
+                Object userIdObj = claims.get("userId");
+                String userId = userIdObj != null ? userIdObj.toString() : null;
+
+                // Create modified exchange with user context headers
+                ServerWebExchange modifiedExchange = exchange.mutate()
+                        .request(r -> {
+                            if (userId != null) {
+                                r.header("X-User-Id", userId);
+                            }
+                            r.header("X-Username", username);
+                            r.header("X-User-Roles", String.join(",", roles));
+                        })
+                        .build();
+
+                return chain.filter(modifiedExchange)
                         .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
             }
 

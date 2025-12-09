@@ -2,9 +2,9 @@ spring:
   application:
     name: category-service
   datasource:
-    url: jdbc:mysql://localhost:3306/category_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: root
-    password: root
+    url: ${DB_URL_CATEGORY}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -17,14 +17,14 @@ spring:
         format_sql: true
 
 server:
-  port: 8100
+  port: ${CATEGORY_SERVICE_PORT}
 
 eureka:
   instance:
     prefer-ip-address: true
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_URL}
     register-with-eureka: true
     fetch-registry: true
 

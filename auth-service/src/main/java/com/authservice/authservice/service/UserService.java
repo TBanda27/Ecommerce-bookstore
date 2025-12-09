@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
 
@@ -24,11 +25,13 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final EmailService emailService;
 
-    public UserService(UserRepository userRepository, UserMapper userMapper, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public UserService(UserRepository userRepository, UserMapper userMapper, BCryptPasswordEncoder bCryptPasswordEncoder, EmailService emailService) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.emailService = emailService;
     }
 
     public UserResponseDTO registerUser(UserRegistrationRequestDTO userRegistrationRequestDTO) {
@@ -37,15 +40,57 @@ public class UserService implements UserDetailsService {
                 .ifPresent(user -> {
                     throw new IllegalArgumentException("User Registration Failed: Email already in use");
                 });
+        String verificationToken = java.util.UUID.randomUUID().toString();
+        LocalDateTime expiration = LocalDateTime.now().plusHours(1);
         checkPasswordMatch(userRegistrationRequestDTO);
         User user = User.builder()
                 .username(userRegistrationRequestDTO.username())
                 .email(userRegistrationRequestDTO.email())
                 .password(bCryptPasswordEncoder.encode(userRegistrationRequestDTO.password()))
                 .roles(Set.of(Role.ROLE_USER))
+                .verificationToken(verificationToken)
+                .tokenExpirationTime(expiration)
+                .enabled(false)
                 .build();
         User savedUser = userRepository.saveAndFlush(user);
+
+        // Send verification email
+        emailService.sendVerificationToken(savedUser.getEmail(), savedUser.getUsername(), verificationToken);
+        log.info("Verification email sent to: {}", savedUser.getEmail());
+
         return userMapper.mapToResponseDTO(savedUser);
+    }
+
+    public String verifyUser(String verificationToken) {
+        log.info("User Service: VerificationToken:{}", verificationToken);
+        User user = userRepository.findByVerificationToken(verificationToken)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid verification token"));
+        if (user.getTokenExpirationTime().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Verification token has expired");
+        } else {
+            user.setEnabled(true);
+            user.setVerificationToken(null);
+            user.setTokenExpirationTime(null);
+            userRepository.saveAndFlush(user);
+            return user.getUsername() + " has been successfully verified. You can now log in.";
+        }
+    }
+
+    public void resendVerificationEmail(String email){
+        log.info("User Service: Resend Verification Email to: {}", email);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+        if(user.getEnabled()){
+            throw new IllegalArgumentException("User is already verified.");
+        }
+        String newVerificationToken = java.util.UUID.randomUUID().toString();
+        LocalDateTime newExpiration = LocalDateTime.now().plusHours(1);
+        user.setVerificationToken(newVerificationToken);
+        user.setTokenExpirationTime(newExpiration);
+        userRepository.saveAndFlush(user);
+
+        emailService.sendVerificationToken(user.getEmail(), user.getUsername(), newVerificationToken);
+        log.info("Verification email resent to: {}", email);
     }
 
     public Page<UserResponseDTO> getAllUsers(int page, int size) {

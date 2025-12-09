@@ -1,5 +1,6 @@
 package com.authservice.authservice.util;
 
+import com.authservice.authservice.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -58,6 +59,12 @@ public class JwtUtil {
         claims.put("roles", userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList());
+
+        // Add user ID to JWT claims for downstream services
+        if (userDetails instanceof User user) {
+            claims.put("userId", user.getId());
+        }
+
         return createToken(claims, userDetails.getUsername());
     }
 

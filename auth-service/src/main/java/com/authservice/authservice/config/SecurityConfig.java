@@ -28,10 +28,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/v1/auth/login").permitAll()
+                // Authentication endpoints
+                .requestMatchers("/api/v1/auth/**").permitAll()
+                // OAuth2 endpoints
                 .requestMatchers("/login/oauth2/**").permitAll()
                 .requestMatchers("/oauth2/**").permitAll()
+                // User registration endpoint
                 .requestMatchers(HttpMethod.POST, "/api/v1/user").permitAll()
                 // Internal endpoints for service-to-service communication
                 .requestMatchers("/api/v1/user/internal/**").permitAll()

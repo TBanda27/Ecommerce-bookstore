@@ -36,6 +36,8 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/v1/user").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/v1/auth/verify").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/api/v1/auth/resend-verification").permitAll()
 
                         // Public endpoints - Documentation and monitoring
                         .pathMatchers("/actuator/health").permitAll()

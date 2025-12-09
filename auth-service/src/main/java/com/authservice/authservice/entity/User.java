@@ -11,6 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -32,8 +33,16 @@ public class User implements UserDetails {
 
     private String password;
 
+    @Column(nullable = false)
+    private Boolean enabled = false;
+
+    @Column(unique = true)
+    private String verificationToken;
+
     @Column(unique = true, nullable = false)
     private String email;
+
+    private LocalDateTime tokenExpirationTime;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
@@ -52,5 +61,10 @@ public class User implements UserDetails {
         return roles.stream()
                 .map(Role::name)
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
     }
 }
