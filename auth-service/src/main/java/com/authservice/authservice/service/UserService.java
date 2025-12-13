@@ -2,6 +2,7 @@ package com.authservice.authservice.service;
 
 import com.authservice.authservice.dto.UserRegistrationRequestDTO;
 import com.authservice.authservice.dto.UserResponseDTO;
+import com.authservice.authservice.dto.UserUpdateRequestDTO;
 import com.authservice.authservice.entity.User;
 import com.authservice.authservice.enums.Role;
 import com.authservice.authservice.mapper.UserMapper;
@@ -106,14 +107,39 @@ public class UserService implements UserDetailsService {
         return userMapper.mapToResponseDTO(user);
     }
 
-    public UserResponseDTO updateUser(Long id, UserRegistrationRequestDTO userUpdateRequestDTO) {
+    public UserResponseDTO findUserByUsername(String username) {
+        log.info("User Service: Find User by username: {}", username);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with username: " + username));
+        return userMapper.mapToResponseDTO(user);
+    }
+
+    public UserResponseDTO updateUser(Long id, UserUpdateRequestDTO updateRequest) {
         log.info("User Service: Update User with id: {}", id);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
-        user.setUsername(userUpdateRequestDTO.username());
-        user.setEmail(userUpdateRequestDTO.email());
-        checkPasswordMatch(userUpdateRequestDTO);
-        user.setPassword(bCryptPasswordEncoder.encode(userUpdateRequestDTO.password()));
+
+        // Check if new username is already taken by another user
+        if (updateRequest.username() != null && !updateRequest.username().isBlank()) {
+            if (!updateRequest.username().equals(user.getUsername())) {
+                userRepository.findByUsername(updateRequest.username())
+                        .ifPresent(existingUser -> {
+                            throw new IllegalArgumentException("Username already taken. Please choose a different username.");
+                        });
+            }
+            user.setUsername(updateRequest.username());
+        }
+
+        if (updateRequest.email() != null && !updateRequest.email().isBlank()) {
+            user.setEmail(updateRequest.email());
+        }
+        if (updateRequest.password() != null && !updateRequest.password().isBlank()) {
+            if (updateRequest.confirmPassword() == null || !updateRequest.password().equals(updateRequest.confirmPassword())) {
+                throw new IllegalArgumentException("Password and confirm password do not match");
+            }
+            user.setPassword(bCryptPasswordEncoder.encode(updateRequest.password()));
+        }
+
         User updatedUser = userRepository.saveAndFlush(user);
         return userMapper.mapToResponseDTO(updatedUser);
     }

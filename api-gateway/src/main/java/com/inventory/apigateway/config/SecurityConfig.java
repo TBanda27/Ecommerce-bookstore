@@ -32,6 +32,10 @@ public class SecurityConfig {
                         .pathMatchers("/auth/login/oauth2/**").permitAll()
                         .pathMatchers("/oauth2/**").permitAll()
 
+                        // OAuth2 endpoints (direct paths through gateway)
+                        .pathMatchers("/api/v1/oauth2/**").permitAll()
+                        .pathMatchers("/login/**").permitAll()
+
                         // Public endpoints - Auth (direct paths for Swagger)
                         .pathMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
@@ -81,11 +85,18 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.PUT, "/api/v1/inventory/**").hasRole("ADMIN")
                         .pathMatchers(HttpMethod.DELETE, "/api/v1/inventory/**").hasRole("ADMIN")
 
-                        // Admin-only endpoints - User Management
-                        .pathMatchers(HttpMethod.GET, "/api/v1/users/**").hasRole("ADMIN")
-                        .pathMatchers(HttpMethod.PUT, "/api/v1/users/**").hasRole("ADMIN")
-                        .pathMatchers(HttpMethod.DELETE, "/uapi/v1/users/**").hasRole("ADMIN")
+                        // User profile management - Authenticated users can manage their own profile
+                        .pathMatchers(HttpMethod.GET, "/api/v1/user/me").hasAnyRole("USER", "ADMIN")
+                        .pathMatchers(HttpMethod.PUT, "/api/v1/user/me").hasAnyRole("USER", "ADMIN")
+                        .pathMatchers(HttpMethod.DELETE, "/api/v1/user/me").hasAnyRole("USER", "ADMIN")
+
+                        // Admin-only endpoints - User Management (view and delete only, no updates)
+                        .pathMatchers(HttpMethod.GET, "/api/v1/user").hasRole("ADMIN")
+                        .pathMatchers(HttpMethod.GET, "/api/v1/user/**").hasRole("ADMIN")
+                        .pathMatchers(HttpMethod.DELETE, "/api/v1/user/**").hasRole("ADMIN")
                         // Admin-and user only endpoints - Review Service
+                        .pathMatchers(HttpMethod.GET, "/api/v1/review/me").hasAnyRole("USER", "ADMIN")
+                        .pathMatchers(HttpMethod.POST, "/api/v1/review").hasAnyRole("USER", "ADMIN")
                         .pathMatchers(HttpMethod.PUT, "/api/v1/review/**").hasAnyRole("USER", "ADMIN")
                         .pathMatchers(HttpMethod.POST, "/api/v1/review/**").hasAnyRole("USER", "ADMIN")
                         .pathMatchers(HttpMethod.DELETE, "/api/v1/review/**").hasAnyRole("USER", "ADMIN")

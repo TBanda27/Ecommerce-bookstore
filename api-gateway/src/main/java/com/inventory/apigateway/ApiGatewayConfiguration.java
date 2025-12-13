@@ -1,5 +1,6 @@
 package com.inventory.apigateway;
 
+import org.springframework.cloud.gateway.route.builder.GatewayFilterSpec;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,6 +12,17 @@ public class ApiGatewayConfiguration {
     @Bean
     public RouteLocator gatewayRouter(RouteLocatorBuilder builder) {
         return builder.routes()
+                // OAuth2 routes (must be first for proper matching)
+                .route(p -> p.path("/api/v1/oauth2/**")
+                        .filters(GatewayFilterSpec::preserveHostHeader)
+                        .uri("lb://AUTH-SERVICE"))
+                .route(p -> p.path("/oauth2/**")
+                        .filters(GatewayFilterSpec::preserveHostHeader)
+                        .uri("lb://AUTH-SERVICE"))
+                .route(p -> p.path("/login/**")
+                        .filters(GatewayFilterSpec::preserveHostHeader)
+                        .uri("lb://AUTH-SERVICE"))
+
                 // Direct API routes (for Swagger UI)
                 .route(p -> p.path("/api/v1/auth/**")
                         .uri("lb://AUTH-SERVICE"))

@@ -3,7 +3,6 @@ package com.reviews.reviews.service;
 import com.reviews.reviews.dto.BookResponseDTO;
 import com.reviews.reviews.dto.ReviewRequestDTO;
 import com.reviews.reviews.dto.ReviewResponseDTO;
-import com.reviews.reviews.dto.UserResponseDTO;
 import com.reviews.reviews.entity.Review;
 import com.reviews.reviews.exceptions.BookNotFoundException;
 import com.reviews.reviews.exceptions.DuplicateReviewException;
@@ -13,11 +12,18 @@ import com.reviews.reviews.feignclients.BookClient;
 import com.reviews.reviews.feignclients.UserClient;
 import com.reviews.reviews.mapper.ReviewMapper;
 import com.reviews.reviews.repository.ReviewsRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
+
+@Slf4j
 @Service
 public class ReviewService {
 
@@ -33,11 +39,13 @@ public class ReviewService {
         this.bookClient = bookClient;
     }
 
-    public ReviewResponseDTO createReview(ReviewRequestDTO reviewRequestDTO, Long userId) {
-        UserResponseDTO user = userClient.getUserById(userId).getBody();
-        if (user == null) {
-            throw new UserNotFoundException("Invalid user ID: " + userId);
+    public ReviewResponseDTO createReview(ReviewRequestDTO reviewRequestDTO, String username) {
+        // Get userId from Authentication (stored as credentials by Gateway filter)
+        Long userId = getUserIdFromAuthentication();
+        if (userId == null) {
+            throw new UserNotFoundException("User ID not found in authentication context");
         }
+
         BookResponseDTO book = bookClient.getBookById(reviewRequestDTO.bookId()).getBody();
         if (book == null) {
             throw new BookNotFoundException("Invalid book ID: " + reviewRequestDTO.bookId());
@@ -49,8 +57,8 @@ public class ReviewService {
         Review review = Review.builder()
                 .bookId(reviewRequestDTO.bookId())
                 .bookName(book.name())
-                .reviewerId(user.id())
-                .reviewerName(user.username())
+                .reviewerId(userId)
+                .reviewerName(username)
                 .rating(reviewRequestDTO.rating())
                 .review(reviewRequestDTO.review())
                 .createdAt(new java.util.Date())
@@ -59,6 +67,14 @@ public class ReviewService {
 
         reviewsRepository.saveAndFlush(review);
         return reviewMapper.toReviewResponseDTO(review);
+    }
+
+    private Long getUserIdFromAuthentication() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getCredentials() instanceof Long) {
+            return (Long) authentication.getCredentials();
+        }
+        return null;
     }
 
     public ReviewResponseDTO getReviewById(Long id) {
@@ -76,9 +92,23 @@ public class ReviewService {
         return reviewsPage.map(reviewMapper::toReviewResponseDTO);
     }
 
-    public ReviewResponseDTO updateReview(Long id, ReviewRequestDTO reviewRequestDTO) {
+    public ReviewResponseDTO updateReview(Long id, ReviewRequestDTO reviewRequestDTO, String username) {
         Review existingReview = reviewsRepository.findById(id)
                 .orElseThrow(() -> new ReviewNotFoundException("Review not found with id: " + id));
+
+        // Get userId from Authentication
+        Long userId = getUserIdFromAuthentication();
+        if (userId == null) {
+            throw new UserNotFoundException("User ID not found in authentication context");
+        }
+
+        // Check if user has admin role
+        boolean isAdmin = hasRole("ROLE_ADMIN");
+
+        // Authorization: Only the review owner or admin can update
+        if (!existingReview.getReviewerId().equals(userId) && !isAdmin) {
+            throw new SecurityException("You are not authorized to update this review");
+        }
 
         existingReview.setRating(reviewRequestDTO.rating());
         existingReview.setReview(reviewRequestDTO.review());
@@ -88,17 +118,58 @@ public class ReviewService {
         return reviewMapper.toReviewResponseDTO(existingReview);
     }
 
-    public void deleteReviewById(Long id) {
-        if (!reviewsRepository.existsById(id)) {
-            throw new ReviewNotFoundException("Review not found with id: " + id);
+    private boolean hasRole(String role) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return false;
         }
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        return authorities.stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals(role));
+    }
+
+    public void deleteReviewById(Long id, String username) {
+        Review existingReview = reviewsRepository.findById(id)
+                .orElseThrow(() -> new ReviewNotFoundException("Review not found with id: " + id));
+
+        // Get userId from Authentication
+        Long userId = getUserIdFromAuthentication();
+        if (userId == null) {
+            throw new UserNotFoundException("User ID not found in authentication context");
+        }
+
+        // Check if user has admin role
+        boolean isAdmin = hasRole("ROLE_ADMIN");
+
+        // Authorization: Only the review owner or admin can delete
+        if (!existingReview.getReviewerId().equals(userId) && !isAdmin) {
+            throw new SecurityException("You are not authorized to delete this review");
+        }
+
         reviewsRepository.deleteById(id);
     }
 
     public Page<ReviewResponseDTO> getBookReviews(Long bookId, int page, int size, String sortBy, String sortDir) {
+        log.info("Getting book reviews for book with id: " + bookId);
         Sort.Direction direction = sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
         Page<Review> reviewsPage = reviewsRepository.findByBookId(bookId, pageRequest);
+
+        return reviewsPage.map(reviewMapper::toReviewResponseDTO);
+    }
+
+    public Page<ReviewResponseDTO> getMyReviews(String username, int page, int size, String sortBy, String sortDir) {
+        log.info("Getting my reviews for user: " + username);
+
+        // Get userId from Authentication
+        Long userId = getUserIdFromAuthentication();
+        if (userId == null) {
+            throw new UserNotFoundException("User ID not found in authentication context");
+        }
+
+        Sort.Direction direction = sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        Page<Review> reviewsPage = reviewsRepository.findByReviewerId(userId, pageRequest);
 
         return reviewsPage.map(reviewMapper::toReviewResponseDTO);
     }

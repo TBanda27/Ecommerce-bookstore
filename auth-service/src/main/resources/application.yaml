@@ -24,6 +24,7 @@ spring:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
             scope:
+              - openid
               - email
               - profile
             redirect-uri: ${GOOGLE_REDIRECT_URI}
@@ -60,6 +61,9 @@ springdoc:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
+    oauth:
+      client-id: ${GOOGLE_CLIENT_ID}
+      use-pkce-with-authorization-code-grant: true
   default-produces-media-type: application/json
   override-with-generic-response: false
 
@@ -69,3 +73,4 @@ jwt:
 
 app:
   base-url: ${BASE_URL}
+  frontend-url: ${FRONTEND_URL:http://localhost:8501}

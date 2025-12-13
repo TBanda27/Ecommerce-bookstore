@@ -2,6 +2,7 @@ package com.authservice.authservice.controller;
 
 import com.authservice.authservice.dto.UserRegistrationRequestDTO;
 import com.authservice.authservice.dto.UserResponseDTO;
+import com.authservice.authservice.dto.UserUpdateRequestDTO;
 import com.authservice.authservice.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -9,12 +10,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/v1/user")
@@ -37,7 +41,7 @@ public class UserController {
         }
     )
     @SecurityRequirements() // Public endpoint
-    public ResponseEntity<UserResponseDTO> registerUser(@RequestBody UserRegistrationRequestDTO userRegistrationRequestDTO) {
+    public ResponseEntity<UserResponseDTO> registerUser(@RequestBody @Valid UserRegistrationRequestDTO userRegistrationRequestDTO) {
         log.info("userController: registerUser called with username: {}", userRegistrationRequestDTO);
         return new ResponseEntity<>(userService.registerUser(userRegistrationRequestDTO), HttpStatus.CREATED);
     }
@@ -60,58 +64,95 @@ public class UserController {
         return new ResponseEntity<>(userService.getAllUsers(page, size), HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    @GetMapping("/me")
     @Operation(
-        summary = "Get User By ID",
-        description = "Retrieve user details. Admins can view any user, regular users can only view their own profile.",
+        summary = "Get Current User Profile",
+        description = "Retrieve the authenticated user's own profile. Username is extracted from authenticated Principal.",
         responses = {
             @ApiResponse(responseCode = "200", description = "User found"),
-            @ApiResponse(responseCode = "403", description = "Access denied"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+        }
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<UserResponseDTO> getCurrentUser(Principal principal) {
+        String username = principal.getName();
+        log.info("User Controller: Request to get current user with username: {}", username);
+        return new ResponseEntity<>(userService.findUserByUsername(username), HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+        summary = "Get User By ID (Admin Only)",
+        description = "Retrieve any user's details. Requires ROLE_ADMIN.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "User found"),
+            @ApiResponse(responseCode = "403", description = "Access denied - Admin role required"),
             @ApiResponse(responseCode = "404", description = "User not found")
         }
     )
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<UserResponseDTO> getUserById(
             @Parameter(description = "User ID") @PathVariable Long id) {
-        log.info("User Controller: Request to get user by id: {}", id);
+        log.info("User Controller (Admin): Request to get user by id: {}", id);
         return new ResponseEntity<>(userService.findUserById(id), HttpStatus.OK);
     }
 
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    @PutMapping("/me")
     @Operation(
-        summary = "Update User",
-        description = "Update user details. Admins can update any user, regular users can only update their own profile.",
+        summary = "Update Current User Profile",
+        description = "Update the authenticated user's own profile. Supports partial updates - only send fields you want to change. Username is extracted from authenticated Principal.",
         responses = {
             @ApiResponse(responseCode = "200", description = "User successfully updated"),
-            @ApiResponse(responseCode = "403", description = "Access denied"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token"),
             @ApiResponse(responseCode = "404", description = "User not found")
         }
     )
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<UserResponseDTO> updateUser(
-            @Parameter(description = "User ID") @PathVariable Long id,
-            @RequestBody UserRegistrationRequestDTO userUpdateRequestDTO) {
-        log.info("User Controller: Request to update user with id: {}", id);
-        return new ResponseEntity<>(userService.updateUser(id, userUpdateRequestDTO), HttpStatus.OK);
+    public ResponseEntity<UserResponseDTO> updateCurrentUser(
+            Principal principal,
+            @RequestBody @Valid UserUpdateRequestDTO userUpdateRequestDTO) {
+        String username = principal.getName();
+        log.info("User Controller: Request to update current user with username: {}", username);
+        UserResponseDTO currentUser = userService.findUserByUsername(username);
+        return new ResponseEntity<>(userService.updateUser(currentUser.id(), userUpdateRequestDTO), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/me")
+    @Operation(
+        summary = "Delete Current User Account",
+        description = "Delete the authenticated user's own account. Username is extracted from authenticated Principal.",
+        responses = {
+            @ApiResponse(responseCode = "204", description = "User successfully deleted"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+        }
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<Void> deleteCurrentUser(Principal principal) {
+        String username = principal.getName();
+        log.info("User Controller: Request to delete current user with username: {}", username);
+        UserResponseDTO currentUser = userService.findUserByUsername(username);
+        userService.deleteUser(currentUser.id());
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
-        summary = "Delete User",
-        description = "Delete a user. Admins can delete any user, regular users can delete their own account.",
+        summary = "Delete User (Admin Only)",
+        description = "Delete any user's account. Requires ROLE_ADMIN.",
         responses = {
             @ApiResponse(responseCode = "204", description = "User successfully deleted"),
-            @ApiResponse(responseCode = "403", description = "Access denied"),
+            @ApiResponse(responseCode = "403", description = "Access denied - Admin role required"),
             @ApiResponse(responseCode = "404", description = "User not found")
         }
     )
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> deleteUser(
             @Parameter(description = "User ID") @PathVariable Long id) {
-        log.info("User Controller: Request to delete user with id: {}", id);
+        log.info("User Controller (Admin): Request to delete user with id: {}", id);
         userService.deleteUser(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -130,5 +171,21 @@ public class UserController {
             @Parameter(description = "User ID") @PathVariable Long id) {
         log.info("User Controller (Internal): Request to get user by id: {}", id);
         return new ResponseEntity<>(userService.findUserById(id), HttpStatus.OK);
+    }
+
+    @GetMapping("/internal/username/{username}")
+    @Operation(
+        summary = "Get User By Username (Internal)",
+        description = "Internal endpoint for service-to-service communication. No authentication required.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "User found"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+        }
+    )
+    @SecurityRequirements() // No authentication required for internal calls
+    public ResponseEntity<UserResponseDTO> getUserByUsernameInternal(
+            @Parameter(description = "Username") @PathVariable String username) {
+        log.info("User Controller (Internal): Request to get user by username: {}", username);
+        return new ResponseEntity<>(userService.findUserByUsername(username), HttpStatus.OK);
     }
 }
