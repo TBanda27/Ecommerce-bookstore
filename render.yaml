@@ -20,6 +20,8 @@ services:
     plan: free
     healthCheckPath: /actuator/health
     envVars:
+      - key: API_GATEWAY_PORT
+        value: 9090
       - key: EUREKA_URL
         value: https://eureka-service.onrender.com/eureka/
       - key: JWT_SECRET
@@ -46,6 +48,8 @@ services:
     plan: free
     healthCheckPath: /actuator/health
     envVars:
+      - key: AUTH_SERVICE_PORT
+        value: 8080
       - key: EUREKA_URL
         value: https://eureka-service.onrender.com/eureka/
       - key: DB_URL_AUTH
@@ -76,6 +80,8 @@ services:
     plan: free
     healthCheckPath: /actuator/health
     envVars:
+      - key: BOOK_SERVICE_PORT
+        value: 8000
       - key: EUREKA_URL
         value: https://eureka-service.onrender.com/eureka/
       - key: DB_URL_BOOKS
@@ -94,6 +100,8 @@ services:
     plan: free
     healthCheckPath: /actuator/health
     envVars:
+      - key: CATEGORY_SERVICE_PORT
+        value: 8100
       - key: EUREKA_URL
         value: https://eureka-service.onrender.com/eureka/
       - key: DB_URL_CATEGORY
@@ -112,6 +120,8 @@ services:
     plan: free
     healthCheckPath: /actuator/health
     envVars:
+      - key: PRICE_SERVICE_PORT
+        value: 8200
       - key: EUREKA_URL
         value: https://eureka-service.onrender.com/eureka/
       - key: DB_URL_PRICE
@@ -130,6 +140,8 @@ services:
     plan: free
     healthCheckPath: /actuator/health
     envVars:
+      - key: INVENTORY_SERVICE_PORT
+        value: 8300
       - key: EUREKA_URL
         value: https://eureka-service.onrender.com/eureka/
       - key: DB_URL_INVENTORY
@@ -148,6 +160,8 @@ services:
     plan: free
     healthCheckPath: /actuator/health
     envVars:
+      - key: REVIEW_SERVICE_PORT
+        value: 8500
       - key: EUREKA_URL
         value: https://eureka-service.onrender.com/eureka/
       - key: DB_URL_REVIEWS
