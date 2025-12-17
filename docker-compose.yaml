@@ -1,0 +1,178 @@
+#version: '3.8'
+
+# Define a custom bridge network for internal communication
+networks:
+  ecommerce-net:
+    driver: bridge
+
+services:
+  # =================================================================
+  # 1. DISCOVERY SERVICE (Eureka)
+  # =================================================================
+  eureka-server:
+    # NOTE: You will need a Dockerfile for the Eureka service as well
+    build:
+      context: ./eureka # Update path if needed
+      dockerfile: Dockerfile
+    container_name: eureka
+    ports:
+      - "${EUREKA_PORT}:${EUREKA_PORT}"
+    environment:
+      # Pass Eureka URL environment variable, crucial for configuration
+      EUREKA_URL: http://eureka-server:${EUREKA_PORT}/eureka/
+    networks:
+      - ecommerce-net
+
+  # =================================================================
+  # 2. API GATEWAY SERVICE
+  # =================================================================
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      # Expose API Gateway port to the host
+      - "${API_GATEWAY_PORT}:${API_GATEWAY_PORT}"
+    environment:
+      # Pass critical variables needed by the API Gateway
+      EUREKA_URL: http://eureka-server:${EUREKA_PORT}/eureka/
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      # The internal port must match the port hardcoded in its bootstrap.yaml (9090)
+      API_GATEWAY_PORT: ${API_GATEWAY_PORT}
+    networks:
+      - ecommerce-net
+    depends_on:
+      eureka-server:
+        condition: service_started
+
+  # =================================================================
+  # 4. AUTH SERVICE (Example Microservice)
+  # =================================================================
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    environment:
+      # Pass DB credentials and URL needed by Auth Service
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_URL_AUTH: jdbc:mysql://host.docker.internal:3306/auth_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      EUREKA_URL: http://eureka-server:${EUREKA_PORT}/eureka/
+      # The internal port must match the port hardcoded in its bootstrap.yaml
+      AUTH_SERVICE_PORT: ${AUTH_SERVICE_PORT}
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      # Email Configuration for verification emails
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_PORT: ${EMAIL_PORT}
+      EMAIL_USERNAME: ${EMAIL_USERNAME}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      # OAuth2 Google Configuration
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+      # Application URLs
+      BASE_URL: ${BASE_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+    networks:
+      - ecommerce-net
+    depends_on:
+      eureka-server:
+        condition: service_started
+
+  book-service:
+    build:
+      context: ./book-service
+      dockerfile: Dockerfile
+    container_name: book-service
+    environment:
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_URL_BOOKS: jdbc:mysql://host.docker.internal:3306/books_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      EUREKA_URL: http://eureka-server:${EUREKA_PORT}/eureka/
+      BOOK_SERVICE_PORT: ${BOOK_SERVICE_PORT}
+    networks:
+      - ecommerce-net
+    depends_on:
+      eureka-server:
+        condition: service_started
+
+
+  category:
+    build:
+      context: ./Category
+      dockerfile: Dockerfile
+    container_name: Category
+    environment:
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_URL_CATEGORY: jdbc:mysql://host.docker.internal:3306/category_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      EUREKA_URL: http://eureka-server:${EUREKA_PORT}/eureka/
+      CATEGORY_SERVICE_PORT: ${CATEGORY_SERVICE_PORT}
+    networks:
+      - ecommerce-net
+    depends_on:
+      eureka-server:
+        condition: service_started
+
+  inventory:
+    build:
+      context: ./inventory
+      dockerfile: Dockerfile
+    container_name: inventory
+    environment:
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_URL_INVENTORY: jdbc:mysql://host.docker.internal:3306/inventory_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      EUREKA_URL: http://eureka-server:${EUREKA_PORT}/eureka/
+      INVENTORY_SERVICE_PORT: ${INVENTORY_SERVICE_PORT}
+    networks:
+      - ecommerce-net
+    depends_on:
+      eureka-server:
+        condition: service_started
+
+  price:
+    build:
+      context: ./price
+      dockerfile: Dockerfile
+    container_name: price
+    environment:
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_URL_PRICE: jdbc:mysql://host.docker.internal:3306/price_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      EUREKA_URL: http://eureka-server:${EUREKA_PORT}/eureka/
+      PRICE_SERVICE_PORT: ${PRICE_SERVICE_PORT}
+    networks:
+      - ecommerce-net
+    depends_on:
+      eureka-server:
+        condition: service_started
+
+  reviews:
+    build:
+      context: ./reviews
+      dockerfile: Dockerfile
+    container_name: reviews
+    environment:
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_URL_REVIEWS: jdbc:mysql://host.docker.internal:3306/reviews_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      EUREKA_URL: http://eureka-server:${EUREKA_PORT}/eureka/
+      REVIEW_SERVICE_PORT: ${REVIEW_SERVICE_PORT}
+    networks:
+      - ecommerce-net
+    depends_on:
+      eureka-server:
+        condition: service_started
+
+
+# =================================================================
+# VOLUMES
+# =================================================================
+# No volumes needed - using host MySQL database

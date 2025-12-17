@@ -16,6 +16,6 @@ public class UserMapper {
                                 .stream()
                                 .map(Role::name)
                                 .collect(Collectors.toSet());
-        return new UserResponseDTO(user.getId(), user.getUsername(), user.getEmail(), roles);
+        return new UserResponseDTO(user.getId(), user.getUsername(), user.getEmail(), roles, user.getEnabled());
     }
 }
