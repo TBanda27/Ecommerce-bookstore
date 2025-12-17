@@ -1,0 +1,8 @@
+{
+    "message": "Login Successful",
+    "token": "eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6WyJST0xFX1VTRVIiXSwidXNlcklkIjoxLCJzdWIiOiJ0aGViYW5kYSIsImlhdCI6MTc2NTM3NjYxNCwiZXhwIjoxNzY1NDYzMDE0fQ.aPajtg1Zve1ovmoUN1MFDEFrCYbXbgsgYTPV0E_lQ1QQUC2e23NEHI14-0YtCYentMkP24UMeS4IVx6mpcD3Yw",
+    "type": "Bearer",
+    "expiresIn": 86400000,
+    "username": "thebanda",
+    "email": "tbanda@outlook.ie"
+}

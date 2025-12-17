@@ -1,14 +1,29 @@
-# Use the official OpenJDK image for a slim JRE
+# Stage 1: Build the application
+FROM eclipse-temurin:17-jdk AS builder
+
+WORKDIR /build
+
+# Copy pom.xml first for dependency caching
+COPY pom.xml .
+RUN apt-get update && apt-get install -y maven && \
+    mvn dependency:go-offline -B
+
+# Copy source code
+COPY src ./src
+
+# Build the application
+RUN mvn clean package -DskipTests
+
+# Stage 2: Runtime
 FROM eclipse-temurin:17-jre
 
-# Set the argument for the JAR file name
-ARG JAR_FILE=book-service-0.0.1-SNAPSHOT.jar
-
-# Set the container's working directory
 WORKDIR /app
 
-# Copy the built JAR file from the Maven 'target' directory into the container
-COPY target/${JAR_FILE} app.jar
+# Copy JAR from builder
+COPY --from=builder /build/target/*.jar app.jar
 
-# Run the application when the container starts
+# Expose port
+EXPOSE 8000
+
+# Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]

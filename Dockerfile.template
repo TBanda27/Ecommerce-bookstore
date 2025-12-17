@@ -1,9 +1,10 @@
-# Stage 1: Build the application
+# Multi-stage Dockerfile for Spring Boot Microservices
+# Stage 1: Build the application with Maven
 FROM eclipse-temurin:17-jdk AS builder
 
 WORKDIR /build
 
-# Copy pom.xml first for dependency caching
+# Copy pom.xml and download dependencies (cached layer)
 COPY pom.xml .
 RUN apt-get update && apt-get install -y maven && \
     mvn dependency:go-offline -B
@@ -21,9 +22,6 @@ WORKDIR /app
 
 # Copy JAR from builder
 COPY --from=builder /build/target/*.jar app.jar
-
-# Expose port
-EXPOSE 8300
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]

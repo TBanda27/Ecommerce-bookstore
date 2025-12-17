@@ -1,15 +1,29 @@
-# Use the official OpenJDK image for a slim JRE
+# Stage 1: Build the application
+FROM eclipse-temurin:17-jdk AS builder
+
+# Set working directory
+WORKDIR /build
+
+# Copy Maven files
+COPY pom.xml .
+COPY src ./src
+
+# Build the application (skip tests for faster builds)
+RUN apt-get update && apt-get install -y maven && \
+    mvn clean package -DskipTests
+
+# Stage 2: Run the application
 FROM eclipse-temurin:17-jre
 
-# Set the argument for the JAR file name
-ARG JAR_FILE=eureka-0.0.1-SNAPSHOT.jar
-
-# Set the container's working directory
+# Set working directory
 WORKDIR /app
 
-# Copy the built JAR file from the Maven 'target' directory into the container
-COPY target/${JAR_FILE} app.jar
+# Copy the built JAR from builder stage
+COPY --from=builder /build/target/*.jar app.jar
 
-# Run the application when the container starts
+# Expose port
+EXPOSE 8761
+
+# Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
 
