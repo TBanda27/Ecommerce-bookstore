@@ -1,0 +1,158 @@
+services:
+  # Eureka Service Discovery
+  - type: web
+    name: eureka-service
+    runtime: docker
+    dockerfilePath: ./eureka/Dockerfile
+    dockerContext: ./eureka
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: EUREKA_PORT
+        value: 8761
+
+  # API Gateway
+  - type: web
+    name: api-gateway
+    runtime: docker
+    dockerfilePath: ./api-gateway/Dockerfile
+    dockerContext: ./api-gateway
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: EUREKA_URL
+        value: https://eureka-service.onrender.com/eureka/
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRATION
+        value: 86400000
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: BASE_URL
+        sync: false
+
+  # Auth Service
+  - type: web
+    name: auth-service
+    runtime: docker
+    dockerfilePath: ./auth-service/Dockerfile
+    dockerContext: ./auth-service
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: EUREKA_URL
+        value: https://eureka-service.onrender.com/eureka/
+      - key: DB_URL_AUTH
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRATION
+        value: 86400000
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: 587
+      - key: EMAIL_USERNAME
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+
+  # Book Service
+  - type: web
+    name: book-service
+    runtime: docker
+    dockerfilePath: ./book-service/Dockerfile
+    dockerContext: ./book-service
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: EUREKA_URL
+        value: https://eureka-service.onrender.com/eureka/
+      - key: DB_URL_BOOKS
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+
+  # Category Service
+  - type: web
+    name: category-service
+    runtime: docker
+    dockerfilePath: ./Category/Dockerfile
+    dockerContext: ./Category
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: EUREKA_URL
+        value: https://eureka-service.onrender.com/eureka/
+      - key: DB_URL_CATEGORY
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+
+  # Price Service
+  - type: web
+    name: price-service
+    runtime: docker
+    dockerfilePath: ./price/Dockerfile
+    dockerContext: ./price
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: EUREKA_URL
+        value: https://eureka-service.onrender.com/eureka/
+      - key: DB_URL_PRICE
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+
+  # Inventory Service
+  - type: web
+    name: inventory-service
+    runtime: docker
+    dockerfilePath: ./inventory/Dockerfile
+    dockerContext: ./inventory
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: EUREKA_URL
+        value: https://eureka-service.onrender.com/eureka/
+      - key: DB_URL_INVENTORY
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+
+  # Reviews Service
+  - type: web
+    name: reviews-service
+    runtime: docker
+    dockerfilePath: ./reviews/Dockerfile
+    dockerContext: ./reviews
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: EUREKA_URL
+        value: https://eureka-service.onrender.com/eureka/
+      - key: DB_URL_REVIEWS
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
