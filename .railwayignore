@@ -1,0 +1,67 @@
+# Railway ignore file
+# Files and directories to exclude from Railway deployments
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# Build outputs
+target/
+build/
+*.class
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Database backups
+database_backups/
+
+# Python virtual environments
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Node modules (if any)
+node_modules/
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+
+# Documentation (deploy separately if needed)
+*.md
+!README.md
+
+# Test files
+*.test.js
+test/
+tests/
+
+# Security
+.cache_ggshield
+*.pem
+*.key
+client_secret*.json
+
+# Maven wrapper (Railway will use its own)
+.mvn/
+mvnw
+mvnw.cmd
