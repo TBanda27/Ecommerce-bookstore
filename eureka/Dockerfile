@@ -21,6 +21,9 @@ WORKDIR /app
 # Copy the built JAR from builder stage
 COPY --from=builder /build/target/*.jar app.jar
 
+# Set environment variable
+ENV EUREKA_PORT=8761
+
 # Expose port
 EXPOSE 8761
 
