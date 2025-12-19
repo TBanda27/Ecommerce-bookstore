@@ -23,7 +23,8 @@ server:
 
 eureka:
   instance:
-    prefer-ip-address: true
+    hostname: ${RAILWAY_PRIVATE_DOMAIN:localhost}
+    prefer-ip-address: false
   client:
     service-url:
       defaultZone: ${EUREKA_URL}
