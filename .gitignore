@@ -1,0 +1,64 @@
+/book-service/.gitattributes
+/eureka/.gitattributes
+/.idea/.gitignore
+/book-service/.gitignore
+/eureka/.gitignore
+/.idea/Books-Ecommerce Project.iml
+/.idea/compiler.xml
+/.idea/encodings.xml
+/.idea/jarRepositories.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/vcs.xml
+*.iml
+# IntelliJ IDEA - covers ALL JetBrains IDEs
+.idea/
+*.iws
+*.ipr
+out/
+target/
+
+# Build artifacts
+/build/
+/dist/
+/bin/
+
+# Local run configurations & history
+.idea/runConfigurations/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries/
+.idea/shelf/
+.idea/dataSources.local.xml
+
+# Gradle / Maven (if you use them)
+.gradle/
+.gradle
+build/
+.mvn/
+*.log
+*.csv
+*.json
+
+# OS junk
+.DS_Store
+Thumbs.db
+*.pyi
+*.ipynb
+*.sql
+nul
+
+# Environment variables (contains secrets)
+.env
+.env.*
+!.env.example
+.claude/
+client_secret_1042070156406-rjqirpjcdbsf04u7kqnjftm0ichjmk9r.apps.googleusercontent.com.json
+credentials.json
+
+
+
+# Files with actual secrets (keep local only)
+aiven_db.txt
+database_backups/
+
