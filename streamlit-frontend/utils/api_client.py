@@ -62,7 +62,7 @@ class APIClient:
 
     def get_oauth2_login_url(self) -> str:
         """Get Google OAuth2 login URL"""
-        return f"{self.base_url}/api/v1/oauth2/login/google"
+        return f"{self.base_url}/oauth2/authorization/google"
 
     def register(self, username: str, email: str, password: str, confirm_password: str = None) -> Dict[str, Any]:
         """Register a new user"""
