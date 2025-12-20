@@ -35,6 +35,41 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         this.jwtUtil = jwtUtil;
     }
 
+    /**
+     * Generate a unique username by checking database and appending suffixes if needed
+     * Strategy:
+     * 1. Try base username (e.g., "john_doe")
+     * 2. If exists, try base + email prefix (e.g., "john_doe_johndoe123")
+     * 3. If still exists, append counter (e.g., "john_doe_johndoe123_1")
+     */
+    private String generateUniqueUsername(String baseUsername, String email) {
+        String emailPrefix = email.split("@")[0].replaceAll("[^a-zA-Z0-9]", "_").toLowerCase();
+
+        // Try base username first
+        if (!userRepository.findByUsername(baseUsername).isPresent()) {
+            log.info("Using base username: {}", baseUsername);
+            return baseUsername;
+        }
+
+        // Try base username + email prefix
+        String usernameWithEmail = baseUsername + "_" + emailPrefix;
+        if (!userRepository.findByUsername(usernameWithEmail).isPresent()) {
+            log.info("Using username with email prefix: {}", usernameWithEmail);
+            return usernameWithEmail;
+        }
+
+        // If still exists, append counter
+        int counter = 1;
+        String uniqueUsername;
+        do {
+            uniqueUsername = usernameWithEmail + "_" + counter;
+            counter++;
+        } while (userRepository.findByUsername(uniqueUsername).isPresent());
+
+        log.info("Using username with counter: {}", uniqueUsername);
+        return uniqueUsername;
+    }
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                        Authentication authentication) throws IOException, ServletException {
@@ -53,9 +88,14 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         User user = userRepository.findByEmail(email)
                 .orElseGet(() -> {
                     log.info("Creating new OAuth2 user: {}", email);
+
+                    // Generate unique username
+                    String baseUsername = name != null ? name.replaceAll("\\s+", "_").toLowerCase() : email.split("@")[0];
+                    String uniqueUsername = generateUniqueUsername(baseUsername, email);
+
                     User newUser = User.builder()
                             .email(email)
-                            .username(name != null ? name.replaceAll("\\s+", "_").toLowerCase() : email.split("@")[0])
+                            .username(uniqueUsername)
                             .password("") // No password for OAuth2 users
                             .roles(Set.of(Role.ROLE_USER))
                             .enabled(true) // Auto-verify OAuth2 users
