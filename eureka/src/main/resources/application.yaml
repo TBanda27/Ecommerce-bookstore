@@ -3,11 +3,13 @@ spring:
     name: eureka
 
 server:
-  port: 8761
+  port: ${PORT:8761}
 
 eureka:
   instance:
-    hostname: localhost
+    hostname: ${RAILWAY_PUBLIC_DOMAIN:localhost}
+    prefer-ip-address: false
+    non-secure-port: ${PORT:8761}
   client:
     register-with-eureka: false
     fetch-registry: false

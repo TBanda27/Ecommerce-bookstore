@@ -22,8 +22,12 @@ WORKDIR /app
 # Copy JAR from builder
 COPY --from=builder /build/target/*.jar app.jar
 
+# Copy entrypoint script
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 # Expose port
 EXPOSE 8200
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Run the application via entrypoint script
+ENTRYPOINT ["/app/entrypoint.sh"]
